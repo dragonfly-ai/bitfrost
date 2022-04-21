@@ -63,7 +63,7 @@ trait WorkingSpace {
      * @return an instance of the ARGB case class.
      * @example {{{ val c = ARGB(72,105,183) }}}
      */
-    inline def apply(red: Int, green: Int, blue: Int): ARGB = apply(255, red, green, blue)
+    def apply(red: Int, green: Int, blue: Int): ARGB = apply(255, red, green, blue)
 
 
     /**
@@ -80,7 +80,7 @@ trait WorkingSpace {
      * @return an instance of the ARGB case class.
      * @example {{{ val c = ARGB(72,105,183) }}}
      */
-    inline def apply(alpha: Int, red: Int, green: Int, blue: Int): ARGB = apply((alpha << 24) | (red << 16) | (green << 8) | blue)
+    def apply(alpha: Int, red: Int, green: Int, blue: Int): ARGB = apply((alpha << 24) | (red << 16) | (green << 8) | blue)
 
     /**
      * Factory method to create a fully Opaque ARGB color; one with an alpha value of 255.
@@ -125,7 +125,7 @@ trait WorkingSpace {
      * @param intensity the intensity of the desired gray value ranging from [0-255].
      * @return an ARGB instance encoding the desired grayscale intensity.
      */
-    inline def grayIfValid(intensity: Int): Option[ARGB] = {
+    def grayIfValid(intensity: Int): Option[ARGB] = {
       if (RGB.valid(intensity)) Some(apply(intensity, intensity, intensity))
       else None
     }
@@ -137,19 +137,19 @@ trait WorkingSpace {
      * @param intensity the intensity of the desired gray value ranging from [0-255].
      * @return an ARGB instance encoding the desired grayscale intensity.
      */
-    inline def gray(intensity: Int): ARGB = apply(intensity, intensity, intensity)
+    def gray(intensity: Int): ARGB = apply(intensity, intensity, intensity)
 
-    inline def CLEAR: ARGB = apply(0, 0, 0, 0)
+    def CLEAR: ARGB = apply(0, 0, 0, 0)
 
-    inline def BLACK: ARGB = apply(0, 0, 0)
+    def BLACK: ARGB = apply(0, 0, 0)
 
-    inline def WHITE: ARGB = apply(255, 255, 255)
+    def WHITE: ARGB = apply(255, 255, 255)
 
-    inline def GRAY: ARGB = apply(127, 127, 127)
+    def GRAY: ARGB = apply(127, 127, 127)
 
-    inline def DARK_GRAY: ARGB = gray(63)
+    def DARK_GRAY: ARGB = gray(63)
 
-    inline def LIGHT_GRAY: ARGB = gray(191)
+    def LIGHT_GRAY: ARGB = gray(191)
 
     /**
      * Use Color.random() to obtain a random color in the form of an ARGB instance.
@@ -297,7 +297,7 @@ trait WorkingSpace {
      * @return an instance of the NARGB case class.
      * @example {{{ val c = NARGB(72,105,183) }}}
      */
-    inline def apply(red: Double, green: Double, blue: Double): NRGB = apply(VectorValues(red, green, blue))
+    def apply(red: Double, green: Double, blue: Double): NRGB = apply(VectorValues(red, green, blue))
 
     val `1/255`: Double = 0.00392156862745098
 
@@ -385,7 +385,7 @@ trait WorkingSpace {
 
     def apply(values: VectorValues): CMYK = new CMYK(dimensionCheck(values, 4))
 
-    inline def apply(cyan: Double, magenta: Double, yellow: Double, black: Double): CMYK = apply(VectorValues(cyan, magenta, yellow, black))
+    def apply(cyan: Double, magenta: Double, yellow: Double, black: Double): CMYK = apply(VectorValues(cyan, magenta, yellow, black))
 
 
     inline def valid(weight: Double): Boolean = weight >= 0f && weight <= 1f
@@ -414,7 +414,7 @@ trait WorkingSpace {
       )
     )
 
-    override inline def fromNRGB(nrgb: NRGB): CMYK = {
+    override def fromNRGB(nrgb: NRGB): CMYK = {
       val K = 1.0 - Math.max(nrgb.red, Math.max(nrgb.green, nrgb.blue))
       val kInv = 1.0 - K
       val C = (1.0 - nrgb.red - K) / kInv
@@ -488,7 +488,7 @@ trait WorkingSpace {
      * c.toString()  // returns "HSL(211.000,75.000,33.333)"
      * }}}
      */
-    inline def apply(hue: Double, saturation: Double, lightness: Double): HSL = apply(VectorValues(hue, saturation, lightness))
+    def apply(hue: Double, saturation: Double, lightness: Double): HSL = apply(VectorValues(hue, saturation, lightness))
 
     override def fromNRGB(nrgb: NRGB): HSL = apply(Hue.toHSL(nrgb.red, nrgb.green, nrgb.blue))
 
@@ -566,7 +566,7 @@ trait WorkingSpace {
      * }}}
      */
 
-    inline def apply(hue: Double, saturation: Double, value: Double): HSV = apply(VectorValues(hue, saturation, value))
+    def apply(hue: Double, saturation: Double, value: Double): HSV = apply(VectorValues(hue, saturation, value))
 
     /**
      * Factory method for creating instances of the HSV class.  This method validates input parameters and throws an exception
@@ -626,7 +626,7 @@ trait WorkingSpace {
      * @return an instance of the LAB case class.
      * @example {{{ val c = LAB(72.872, -0.531, 71.770) }}}
      */
-    inline def apply(L: Double, a: Double, b: Double): Lab = apply(VectorValues(L, a, b))
+    def apply(L: Double, a: Double, b: Double): Lab = apply(VectorValues(L, a, b))
 
     inline def f(t: Double): Double = if (t > ϵ) Math.cbrt(t) else (t * `k/116`) + `16/116`
 
@@ -691,7 +691,7 @@ trait WorkingSpace {
      * @example {{{ val c = SlowSlimLuv(14.756, -3.756, -58.528) }}}
      */
 
-    inline def apply(L: Double, u: Double, v: Double): Luv = apply(VectorValues(L, u, v))
+    def apply(L: Double, u: Double, v: Double): Luv = apply(VectorValues(L, u, v))
 
 
     override def random(r: scala.util.Random = Random.defaultRandom): Luv = ???
@@ -699,7 +699,7 @@ trait WorkingSpace {
     // XYZ to LUV and helpers:
     inline def fL(t: Double): Double = if (t > ϵ) 116.0 * Math.cbrt(t) - 16.0 else k * t
 
-    inline def fromXYZ(xyz: Vector3): Luv = {
+    def fromXYZ(xyz: Vector3): Luv = {
       val white: Vector3 = illuminant.vector
       val scale: Double = XYZ.transform(xyz)
       val referenceWhiteScale: Double = XYZ.transform(white)
@@ -737,7 +737,7 @@ trait WorkingSpace {
       `1/116³` * cubeInPlace(t + 16.0) // ((L+16)/116)^3 = (L + 16)^3 / 116^3 = (L + 16)^3 / 1560896.0
     } else t / k
 
-    inline def toXYZ(using workingSpace: WorkingSpace): Vector3 = {
+    def toXYZ(using workingSpace: WorkingSpace): Vector3 = {
       val `1/3`: Double = 0.3333333333333333 // = 1.0/3.0
       val white: Vector3 = workingSpace.illuminant.vector
       val referenceWhiteScale: Double = XYZ.transform(white)
