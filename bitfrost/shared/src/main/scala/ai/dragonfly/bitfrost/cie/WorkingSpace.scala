@@ -1,17 +1,15 @@
 package ai.dragonfly.bitfrost.cie
 
 import Jama.Matrix
-
 import ai.dragonfly.math.*
-import vector.{VectorValues, Vector2, Vector3, dimensionCheck}
+import vector.{Vector2, Vector3, VectorValues, dimensionCheck}
 import matrix.*
 import matrix.util.*
 import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
 import ai.dragonfly.math.matrix.util.asColumnMatrix
-
 import ai.dragonfly.bitfrost.*
 
-import scala.language.implicitConversions
+import scala.language.{implicitConversions, postfixOps}
 
 trait WorkingSpace {
 
@@ -19,13 +17,14 @@ trait WorkingSpace {
   val primaries: ChromaticityPrimaries
   val illuminant: Illuminant
 
-  lazy val M: Matrix = (
-    ((primaries.xyzXrgbInv * illuminant.vector.asColumnMatrix) * Matrix.identity(3, 3)) * primaries.xyzXrgb_T
-  ).transpose()
+  lazy val M: Matrix = primaries.getM(illuminant)
 
   lazy val M_inverse: Matrix = M.inverse()
 
   import ai.dragonfly.bitfrost
+
+  extension (d: Double)
+    inline def ✱ : Double = d  // working stars: ✱ ✶ ✴
 
   trait CommonColor[C <: CommonColor[C]] extends ColorVector[C] {
     def toNRGB: NRGB
@@ -38,7 +37,7 @@ trait WorkingSpace {
 
 
   trait PerceptualColor[C <: PerceptualColor[C]] extends ColorVector[C] {
-    def toXYZ(using nativeWorkingSpace: WorkingSpace): XYZ
+    def toXYZ: XYZ
   }
 
   trait PerceptualColorSpace[C <: PerceptualColor[C]] extends ColorVectorSpace[C] {
@@ -281,6 +280,7 @@ trait WorkingSpace {
 
 
   object NRGB extends CommonColorSpace[NRGB] {
+    val `1/255`: Double = 1.0 / 255.0
 
     def apply(values: VectorValues): NRGB = new NRGB(dimensionCheck(values, 3))
 
@@ -299,7 +299,7 @@ trait WorkingSpace {
      */
     def apply(red: Double, green: Double, blue: Double): NRGB = apply(VectorValues(red, green, blue))
 
-    val `1/255`: Double = 0.00392156862745098
+    //val `1/255`: Double = 0.00392156862745098
 
     /**
      * Factory method to create a NARGB instance from an ARGB instance.
@@ -372,10 +372,9 @@ trait WorkingSpace {
       )).getRowPackedCopy()
     )
 
-    def toARGB: ARGB = {
-      val argb = RGB.clamp( 255.0, red * 255.0, green * 255.0, blue * 255.0 )
-      ARGB(argb)
-    }
+    def toARGB: ARGB = ARGB(
+      RGB.clamp( 255.0, red * 255.0, green * 255.0, blue * 255.0 )
+    )
 
     inline def toNRGB: NRGB = this
   }
@@ -472,6 +471,11 @@ trait WorkingSpace {
 
     def apply(values: VectorValues): HSL = new HSL(dimensionCheck(values, 3))
 
+    def clamp(values: VectorValues): HSL = {
+      dimensionCheck(values, 3)
+      clamp( values(0), values(1), values(2) )
+    }
+
     /**
      * HSL is the primary case class for representing colors in HSL space.
      *
@@ -488,7 +492,17 @@ trait WorkingSpace {
      * c.toString()  // returns "HSL(211.000,75.000,33.333)"
      * }}}
      */
-    def apply(hue: Double, saturation: Double, lightness: Double): HSL = apply(VectorValues(hue, saturation, lightness))
+    def apply(hue: Double, saturation: Double, lightness: Double): HSL = new HSL(
+      VectorValues(hue, saturation, lightness)
+    )
+
+    def clamp(hue: Double, saturation: Double, lightness: Double): HSL = new HSL(
+      VectorValues(
+        hue, //Hue.clamp(hue),
+        Saturation.clamp(saturation),
+        Lightness.clamp(lightness)
+      )
+    )
 
     override def fromNRGB(nrgb: NRGB): HSL = apply(Hue.toHSL(nrgb.red, nrgb.green, nrgb.blue))
 
@@ -509,8 +523,8 @@ trait WorkingSpace {
     override def random(r: scala.util.Random = Random.defaultRandom): HSL = apply(
       VectorValues(
         r.nextDouble() * 360.0,
-        r.nextDouble() * 100.0,
-        r.nextDouble() * 100.0
+        r.nextDouble(),
+        r.nextDouble()
       )
     )
 
@@ -528,8 +542,16 @@ trait WorkingSpace {
     override def copy(): VEC = new HSL(VectorValues(hue, saturation, lightness)).asInstanceOf[VEC]
 
     override def toNRGB: NRGB = {
-      val C = (1.0 - Math.abs(2.0 * (lightness / 100.0) - 1.0)) * (saturation / 100.0)
-      NRGB.apply(Hue.hcxmToNRGBvalues(hue, C, Hue.hcToX(hue, C), (lightness / 100.0) - (C / 2.0)))
+      // https://www.rapidtables.com/convert/color/hsl-to-rgb.html
+      val C = (1.0 - Math.abs((2*lightness) - 1.0)) * saturation
+      NRGB.apply(
+        Hue.hcxmToNRGBvalues(
+          hue,
+          C,
+          Hue.XfromHueC(hue, C), // X
+          lightness - (0.5 * C) // m
+        )
+      )
     }
 
     override val toString: String = s"HSL($hue, $saturation, $lightness)"
@@ -547,6 +569,12 @@ trait WorkingSpace {
   object HSV extends CommonColorSpace[HSV] {
 
     def apply(values: VectorValues): HSV = new HSV(dimensionCheck(values, 3))
+
+
+    def clamp(values: VectorValues): HSV = {
+      dimensionCheck(values, 3)
+      clamp( values(0), values(1), values(2) )
+    }
 
     /**
      * HSV is the primary case class for representing colors in HSV space.
@@ -566,7 +594,16 @@ trait WorkingSpace {
      * }}}
      */
 
-    def apply(hue: Double, saturation: Double, value: Double): HSV = apply(VectorValues(hue, saturation, value))
+    def apply(hue: Double, saturation: Double, value: Double): HSV = new HSV(VectorValues(hue, saturation, value))
+
+
+    def clamp(hue: Double, saturation: Double, value: Double): HSV = new HSV(
+      VectorValues(
+        hue, //Hue.clamp(hue),
+        Saturation.clamp(saturation),
+        Value.clamp(value)
+      )
+    )
 
     /**
      * Factory method for creating instances of the HSV class.  This method validates input parameters and throws an exception
@@ -587,8 +624,8 @@ trait WorkingSpace {
     override def random(r: scala.util.Random = Random.defaultRandom): HSV = apply(
       VectorValues(
         r.nextDouble() * 360.0,
-        r.nextDouble() * 100.0,
-        r.nextDouble() * 100.0
+        r.nextDouble(),
+        r.nextDouble()
       )
     )
 
@@ -603,9 +640,10 @@ trait WorkingSpace {
 
     inline def value: Double = values(2)
 
+    // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
     override def toNRGB: NRGB = {
-      val C = (value / 100.0) * (saturation / 100.0)
-      NRGB.apply(Hue.hcxmToNRGBvalues(hue, C, Hue.hcToX(hue, C), (value / 100.0) - C))
+      val C = value * saturation
+      NRGB.apply(Hue.hcxmToNRGBvalues(hue, C, Hue.XfromHueC(hue, C), value - C))
     }
 
     override def copy(): VEC = new HSV(VectorValues(hue, saturation, value)).asInstanceOf[VEC]
@@ -638,12 +676,12 @@ trait WorkingSpace {
      * @return
      */
     def fromXYZ(xyz: XYZ): Lab = {
-      val fy: Double = f(illuminant.`1/Yn` * xyz.y)
+      val fy: Double = f(illuminant.`1/yₙ` * xyz.y)
 
       apply(
         116.0 * fy - 16.0,
-        500.0 * (f(illuminant.`1/Xn` * xyz.x) - fy),
-        200.0 * (fy - f(illuminant.`1/Zn` * xyz.z)),
+        500.0 * (f(illuminant.`1/xₙ` * xyz.x) - fy),
+        200.0 * (fy - f(illuminant.`1/zₙ` * xyz.z)),
       )
     }
   }
@@ -659,24 +697,47 @@ trait WorkingSpace {
 
     inline def b: Double = values(2)
 
-    inline def fInverse(t: Double): Double = if (t > `∛ϵ`) t * t * t else (`116/k` * t) - `16/k`
+    inline def fInverse(t: Double): Double = if (t > `∛ϵ`) cubeInPlace(t) else (`116/k` * t) - `16/k`
 
-    def toXYZ(using workingSpace: WorkingSpace): Vector3 = {
-      val white: Vector3 = workingSpace.illuminant.vector
+    def toXYZ: Vector3 = {
+      val white: Vector3 = illuminant.vector
       val fy: Double = `1/116` * (L + 16.0)
 
       Vector3(
-        fInverse((0.005 * a) + fy) * white.x, // X
+        fInverse((0.002 * a) + fy) * white.x, // X
         (if (L > kϵ) {
           val l = L + 16.0; `1/116³` * (l * l * l)
         } else `1/k` * L) * white.y, // Y
-        fInverse(fy - (0.002 * b)) * white.z, // X
+        fInverse(fy - (0.005 * b)) * white.z, // X
       )
     }
 
     override def toString: String = s"L*a*b*($L,$a,$b)"
   }
 
+  object UV {
+
+    private inline def getWeight(xyz:XYZ):Double = 1.0 / (xyz.x + xyz.y + xyz.z)
+
+    def fromXYZ(xyz:XYZ):UV = {
+      var w:Double = getWeight(xyz)
+      val x:Double = w * xyz.x
+      val y:Double = w * xyz.y
+      w = 1.0 / (6.0 * y - x + 1.5)
+      UV(2.0 * x * w, 4.5 * y * w)
+    }
+
+  }
+
+  case class UV(u:Double, v:Double) {
+    def xy:Vector2 = {
+      val denominator:Double = (6.0 * u) - (16.0 * v) + 12
+      Vector2(
+        (9.0 * u) / denominator, // X
+        (9.0 * v) / denominator  // y
+      )
+    }
+  }
 
   object Luv extends PerceptualColorSpace[Luv] {
 
@@ -693,20 +754,26 @@ trait WorkingSpace {
 
     def apply(L: Double, u: Double, v: Double): Luv = apply(VectorValues(L, u, v))
 
-
     override def random(r: scala.util.Random = Random.defaultRandom): Luv = ???
 
     // XYZ to LUV and helpers:
+
+    val UV(uₙ:Double, vₙ:Double) = UV.fromXYZ(illuminant.vector)
+
     inline def fL(t: Double): Double = if (t > ϵ) 116.0 * Math.cbrt(t) - 16.0 else k * t
 
     def fromXYZ(xyz: Vector3): Luv = {
-      val white: Vector3 = illuminant.vector
-      val scale: Double = XYZ.transform(xyz)
-      val referenceWhiteScale: Double = XYZ.transform(white)
+
+      val `Y/Yₙ`:Double = xyz.y / illuminant.vector.y
+
+      val `L⭑` = fL(`Y/Yₙ`)
+
+      val uv:UV = UV.fromXYZ(xyz)
+
       apply(
-        fL(xyz.y), // L*  // y / illuminant.Yn, but all known illuminants have Yn = 1.0
-        fL(4.0 * ((xyz.x * scale) - (white.x * referenceWhiteScale))), // u
-        fL(9.0 * ((xyz.y * scale) - (white.y * referenceWhiteScale))) // v
+        `L⭑`,
+        13.0 * `L⭑` * (uv.u - uₙ),
+        13.0 * `L⭑` * (uv.v - vₙ)
       )
     }
 
@@ -728,58 +795,49 @@ trait WorkingSpace {
 
     inline def v: Double = values(2)
 
-    override def toString: String = s"L*u*v*($L,$u,$v)"
+    override def toString: String = s"L⭑u⭑v⭑(${L✱},${u✱},${v✱})"
 
-    override def copy(): VEC = new Luv(VectorValues(L, u, v)).asInstanceOf[VEC]
+    override def copy(): VEC = new Luv(VectorValues(L✱, u✱, v✱)).asInstanceOf[VEC]
 
     // LUV to XYZ and helpers:
     inline def flInverse(t: Double): Double = if (t > kϵ) {
-      `1/116³` * cubeInPlace(t + 16.0) // ((L+16)/116)^3 = (L + 16)^3 / 116^3 = (L + 16)^3 / 1560896.0
-    } else t / k
+      //`1/116³` * cubeInPlace(t + 16.0) // ((L+16)/116)^3 = (L + 16)^3 / 116^3 = (L + 16)^3 / 1560896.0
+      cubeInPlace(`1/116` * (t + 16.0))
+    } else `1/k` * t
 
-    def toXYZ(using workingSpace: WorkingSpace): Vector3 = {
-      val `1/3`: Double = 0.3333333333333333 // = 1.0/3.0
-      val white: Vector3 = workingSpace.illuminant.vector
-      val referenceWhiteScale: Double = XYZ.transform(white)
-      val Y: Double = flInverse(L)
-      val a: Double = `1/3` * ((52.0 * L) / (u + (52.0 * L * (white.x * referenceWhiteScale))) - 1.0) // 13 * 4 = 52
-      val b: Double = -5.0 * Y
-      //val c:Double = -`1/3`
-      val d: Double = Y * (((39.0 * L) / (v * (117.0 * L * (white.y * referenceWhiteScale)))) - 5.0)
-      val X: Double = (d - b) / (a + `1/3`)
-      Vector3(X, Y, X * (a + b))
+    def toXYZ: Vector3 = {
+
+      val uₓ: Double = ((u✱)/ (13.0 * L✱)) + Luv.uₙ
+      val vₓ: Double = ((v✱) / (13.0 * L✱)) + Luv.vₙ
+
+      val Y: Double = flInverse(L✱)
+      val X: Double = 9.0 * Y * uₓ / (4.0 * vₓ)
+      val Z: Double = (3.0 * Y / vₓ) - (5.0 * Y) - (X / 3.0)
+
+      //      val X: Double = Y * ((9.0 * uP) / (4.0 * vP)) // 2.25 * Y * uP / vP //
+//      val Z: Double = Y * ((12.0 - (3.0 * uP) - (20.0 * vP)) / (4.0 * vP))
+
+      Vector3(X, Y, Z)
+//      // To reconstruct the illuminant?
+//      val denom:Double = Luv.transform2XYZ(uP, vP)
+//      val X = ( 9.0 * uP) / denom
+//      val Z = ( 4.0 * vP) / denom
+
+
+//      val `1/3`: Double = 0.3333333333333333 // = 1.0/3.0
+//      val white: Vector3 = illuminant.vector
+//      val referenceWhiteScale: Double = Luv.transform(white)
+//      val Y: Double = flInverse(L)
+//      val a: Double = `1/3` * ((52.0 * L) / (u + (13.0 * L * (4.0 * white.x * referenceWhiteScale))) - 1.0) // 13 * 4 = 52
+//      val b: Double = -5.0 * Y
+//      //val c:Double = -`1/3`
+//      val d: Double = Y * (((39.0 * L) / (v * (13.0 * L * (9.0 * white.y * referenceWhiteScale)))) - 5.0)
+//      val X: Double = (d - b) / (a + `1/3`)
+//      Vector3(X, Y, (X * a) + b)
     }
 
   }
 
-
-  def argbToHueMaxMin[C](argb: ARGB)(factory: (Double, Double, Double) => C): C = {
-    //  1/255 = 0.00392156862745098
-    val r = argb.red * 0.00392156862745098f
-    val g = argb.green * 0.00392156862745098f
-    val b = argb.blue * 0.00392156862745098f
-
-    val min: Double = Math.min(r, Math.min(g, b))
-    val MAX: Double = Math.max(r, Math.max(g, b))
-
-    val delta: Double = MAX - min
-
-    val h: Double = (if (delta == 0.0) {
-      0
-    } else {
-      (60.0 * (
-        if (r == MAX) {
-          ((g - b) / delta) % 6
-        } else if (g == MAX) {
-          ((b - r) / delta) + 2
-        } else {
-          ((r - g) / delta) + 4
-        }
-        )) + 360
-    }) % 360
-
-    factory(h, min, MAX)
-  }
 
   given Conversion[java.awt.Color, ARGB] with
     def apply(jac: java.awt.Color): ARGB = ARGB(jac.getRGB())
@@ -793,38 +851,39 @@ trait WorkingSpace {
   given Conversion[ARGB, Int] with
     def apply(c: ARGB): Int = c.argb
 
-  given Conversion[ARGB, HSV] with
-    def apply(c: ARGB): HSV = argbToHueMaxMin[HSV](c)(
-      (hue: Double, min: Double, MAX: Double) => HSV(hue, 100 * (MAX - min) / MAX, 100f * MAX)
-    )
-
-
-  given Conversion[ARGB, HSL] with
-    def apply(c: ARGB): HSL = argbToHueMaxMin[HSL](c)(
-      (hue: Double, min: Double, MAX: Double) => {
-        val delta = MAX - min
-        val L = (MAX + min) / 2f
-        val denom = 1f - Math.abs(2 * L - 1)
-        val S = if (denom <= 0f) 0 else delta / denom
-        HSL(hue, 100f * S, 100f * L)
-      }
-    )
-
-
-  given Conversion[ARGB, CMYK] with
-    def apply(c: ARGB): CMYK = {
-      //  1/255 = 0.00392156862745098
-      val r = c.red * 0.00392156862745098f
-      val g = c.green * 0.00392156862745098f
-      val b = c.blue * 0.00392156862745098f
-
-      val K = 1.0 - Math.max(r, Math.max(g, b))
-      val kInv = 1.0 - K
-      val C = (1.0 - r - K) / kInv
-      val M = (1.0 - g - K) / kInv
-      val Y = (1.0 - b - K) / kInv
-
-      CMYK(C, M, Y, K)
-    }
+//  given Conversion[ARGB, HSV] with
+//    def apply(c: ARGB): HSV = argbToHueMaxMin[HSV](c)(
+//      (hue: Double, min: Double, MAX: Double) => HSV(hue, 100 * (MAX - min) / MAX, 100f * MAX)
+//    )
+//
+//
+//  given Conversion[ARGB, HSL] with
+//    def apply(c: ARGB): HSL = argbToHueMaxMin[HSL](c)(
+//      (hue: Double, min: Double, MAX: Double) => {
+//        val delta = MAX - min
+//        val L = (MAX + min) / 2f
+//        val denom = 1f - Math.abs(2 * L - 1)
+//        val S = if (denom <= 0f) 0 else delta / denom
+//        HSL(hue, 100f * S, 100f * L)
+//      }
+//    )
+//
+//
+//  given Conversion[ARGB, CMYK] with
+//    def apply(c: ARGB): CMYK = {
+//      //  1/255 = 0.00392156862745098
+//      val r = c.red * 0.00392156862745098f
+//      val g = c.green * 0.00392156862745098f
+//      val b = c.blue * 0.00392156862745098f
+//
+//      val K = 1.0 - Math.max(r, Math.max(g, b))
+//      val kInv = 1.0 - K
+//      val C = (1.0 - r - K) / kInv
+//      val M = (1.0 - g - K) / kInv
+//      val Y = (1.0 - b - K) / kInv
+//
+//      CMYK(C, M, Y, K)
+//    }
 
 }
+

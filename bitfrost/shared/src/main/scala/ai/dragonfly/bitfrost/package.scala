@@ -1,119 +1,103 @@
 package ai.dragonfly
 
 import Jama.Matrix
-
 import ai.dragonfly.math
 import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.matrix.*
 import ai.dragonfly.math.matrix.MatrixValues
+import ai.dragonfly.math.squareInPlace
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
 
-
-import scala.language.postfixOps
-import scala.language.implicitConversions
 
 package object bitfrost {
 
   type XYZ = Vector3
 
-  extension (d: Double)
-    inline def ⭑ : Double = d  // working stars: ✱ ✶ ✴
-
   object Degree {
     inline def valid(angle: Double): Boolean = angle >= 0f && angle <= 360.0
-    inline def clamp(angle: Double): Double = (if (angle < 0.0) 360.0 + (angle % 360.0) else angle) % 360.0
+    inline def clamp(angle: Double): Double = ((angle % 360.0d) + 360.0d) % 360.0d  // Aly Cerruti's angle santization function from nose
   }
 
   object Hue {
     export Degree.*
-    /*
-     * For HSL, HSV, and CMYK conversion formulas:
-     * http://www.rapidtables.com/convert/color/rgb-to-hsl.htm
-     * http://www.rapidtables.com/convert/color/rgb-to-hsv.htm
-    */
 
+    inline def hueMinMax(red: Double, green: Double, blue: Double): VectorValues = {
+      // hue extractor based on a scala implementation in project nose: https://gitlab.com/srnb/nose/-/blob/master/nose/src/main/scala/tf/bug/nose/space/rgb/StandardRGB.scala
+      // provided by Aly Cerruti
 
-    inline def hueMinMax(red:Double, green: Double, blue:Double):VectorValues = {
+      val min: Double = Math.min(red, Math.min(green, blue))
+      val MAX: Double = Math.max(red, Math.max(green, blue))
 
-      val min:Double = Math.min(red, Math.min(green, blue))
-      val MAX:Double = Math.max(red, Math.max(green, blue))
-
-      val delta:Double = MAX - min
-
-      val h:Double = (if (delta == 0.0) {
-        0
-      } else {
-        (60.0 * (
-          if (red == MAX) {
-            ((green - blue) / delta) % 6
-          } else if (green == MAX) {
-            (blue - red / delta) + 2
-          } else {
-            ((red - green) / delta) + 4
+      VectorValues(
+        clamp(
+          MAX match {
+            case `min` => 0.0
+            case `red` => 60.0 * ((green - blue) / (MAX - min))
+            case `green` => 60.0 * (2.0d + ((blue - red) / (MAX - min)))
+            case `blue` => 60.0 * (4.0d + ((red - green) / (MAX - min)))
           }
-          )) + 360
-      }) % 360
-
-      VectorValues(h, min, MAX)
+        ),
+        min,
+        MAX
+      )
     }
 
-    inline def toHSV(red:Double, green: Double, blue:Double): VectorValues = {
-      val values:VectorValues = hueMinMax(red, green, blue)
-      values(1) = 100.0 * (values(2 /*MAX*/) - values(1 /*min*/)) / values(2 /*MAX*/)
-      values(2) = 100.0 * values(2 /*MAX*/)
+    inline def toHSV(red: Double, green: Double, blue: Double): VectorValues = {
+      val values: VectorValues = hueMinMax(red, green, blue)
+      values(1) = {  // S
+        if (values(2 /*MAX*/) == 0.0) 0.0
+        else (values(2 /*MAX*/) - values(1 /*min*/)) / values(2 /*MAX*/)
+      }
       values
     }
 
-    inline def toHSL(red:Double, green: Double, blue:Double): VectorValues = {
-      val values:VectorValues = hueMinMax(red, green, blue)
-      values(2 /*MAX*/)
-      val delta:Double = values(2 /*MAX*/) - values(1 /*min*/)
-      val L:Double = (values(2 /*MAX*/) + values(1 /*min*/)) / 2.0
-      val denom:Double = 1.0 - Math.abs(2.0 * L - 1.0)
-      values(1) = 100.0 * (if (denom <= 0.0) 0.0 else delta / denom)
-      values(2) = 100.0 * L
+    inline def toHSL(red: Double, green: Double, blue: Double): VectorValues = {
+      val values: VectorValues = hueMinMax(red, green, blue)
+
+      val delta: Double = values(2 /*MAX*/) - values(1 /*min*/)
+      val L: Double = (values(1 /*min*/) + values(2 /*MAX*/))
+
+      values(1) = if (delta == 0.0) 0.0 else delta / (1.0 - Math.abs((L) - 1.0))
+      values(2) = 0.5 * L // (min + max) / 2
       values
     }
 
     inline def hcxmToNRGBvalues(hue: Double, c: Double, x: Double, m: Double): VectorValues = {
-      val X = m + x
-      val C = m + c
-      val Z = m
+      val X = x + m
+      val C = c + m
 
       // rotate/clamp hue between 0 and 360
-      val h = clamp(hue)
+      val h = hue //clamp(hue)
 
-      if (h < 60.0) NRGB.clamp(C, X, Z)
-      else if (h < 120.0) NRGB.clamp(X, C, Z)
-      else if (h < 180.0) NRGB.clamp(Z, C, X)
-      else if (h < 240.0) NRGB.clamp(Z, X, C)
-      else if (h < 300.0) NRGB.clamp(X, Z, C)
-      else NRGB.clamp(C, Z, X)
+      if (h < 60.0) NRGB.clamp(C, X, m) // hue = 360 clamps to 0
+      else if (h < 120.0) NRGB.clamp(X, C, m)
+      else if (h < 180.0) NRGB.clamp(m, C, X)
+      else if (h < 240.0) NRGB.clamp(m, X, C)
+      else if (h < 300.0) NRGB.clamp(X, m, C)
+      else NRGB.clamp(C, m, X)
     }
 
-    inline def hcToX(H: Double, C: Double): Double = {
-      val hh = H/60.0
-      C * ( 1 - Math.abs( hh % 2 - 1 ) )
-    }
+    inline def XfromHueC(H: Double, C: Double): Double = C * (1.0 - Math.abs(((H / 60.0) % 2.0) - 1.0))
+
   }
 
-  object Percentage {
-    inline def valid(percentage: Double): Boolean = percentage >= 0f && percentage <= 100f
-    inline def clamp(percentage: Double): Double = Math.min(100.0, Math.max(0, percentage))
+  object Intensity {
+    inline def valid(percentage: Double): Boolean = percentage >= 0.0 && percentage <= 1.0
+    inline def clamp(percentage: Double): Double = Math.min(1.0, Math.max(0.0, percentage))
   }
 
-  val Saturation:Percentage.type = Percentage
+  val Saturation:Intensity.type = Intensity
 
-  val Value:Percentage.type = Percentage
+  val Value:Intensity.type = Intensity
 
-  val Lightness:Percentage.type = Percentage
+  val Lightness:Intensity.type = Intensity
 
   object RGB {
     inline def valid(intensity: Int): Boolean = intensity >= 0 && intensity < 256
     inline def valid(i0: Int, i1: Int, i2: Int):Boolean = valid(i0) && valid(i1) && valid(i2)
     inline def valid(i0: Int, i1: Int, i2: Int, i3: Int):Boolean = valid(i0) && valid(i1) && valid(i2) && valid(i3)
 
-    inline def clamp(intensity:Double):Int = Math.max(0, Math.min(255, intensity.toInt))
+    inline def clamp(intensity:Double):Int = Math.round(Math.max(0.0, Math.min(255.0, intensity))).toInt
     inline def clamp(red: Double, green: Double, blue: Double):Int = clamp(255.0, red, green, blue)
     inline def clamp(alpha:Double, red: Double, green: Double, blue: Double):Int = {
       (clamp(alpha)<<24)|(clamp(red)<<16)|(clamp(green)<<8)|clamp(blue)
@@ -121,10 +105,10 @@ package object bitfrost {
   }
 
   object NRGB {
-    inline def valid(intensity: Double): Boolean = intensity >= 0.0 && intensity <= 1.0
+    inline def valid(i: Double): Boolean = Intensity.valid(i)
     inline def valid(i0: Double, i1: Double, i2: Double):Boolean = valid(i0) && valid(i1) && valid(i2)
 
-    inline def clamp(intensity:Double):Double = Math.max(0.0, Math.min(1.0, intensity))
+    inline def clamp(i:Double):Double = Intensity.clamp(i)
     inline def clamp(red: Double, green: Double, blue: Double):VectorValues = {
       VectorValues(clamp(red), clamp(green), clamp(blue))
     }
@@ -136,15 +120,20 @@ package object bitfrost {
     import ai.dragonfly.bitfrost.cie.*
     import Illuminant.*
 
+    val knownContexts:Array[WorkingSpace] = Array[WorkingSpace](
+      Adobe_RGB_1998, Apple_RGB, Best_RGB, Beta_RGB, Bruce_RGB, CIE_RGB, ColorMatch_RGB, Don_RGB_4, ECI_RGB_v2,
+      Ekta_Space_PS5, NTSC_RGB, PAL_RGB, ProPhoto_RGB, SMPTE_Minus_C_RGB, sRGB, Wide_Gamut_RGB
+    )
+
     //Adobe RGB (1998)
     // specification: https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
     object Adobe_RGB_1998 extends WorkingSpace {
       override val compander:Compander = Gamma(2.19921875)
 
       override val primaries:ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary( Vector2(0.64, 0.33), 0.297361 ),
-        ChromaticityPrimary( Vector2(0.21, 0.71), 0.627355 ),
-        ChromaticityPrimary( Vector2(0.15, 0.06), 0.075285 )
+        ChromaticityPrimary( 0.64, 0.33, 0.297361 ),
+        ChromaticityPrimary( 0.21, 0.71, 0.627355 ),
+        ChromaticityPrimary( 0.15, 0.06, 0.075285 )
       )
 
       override val illuminant: Illuminant = D65
@@ -155,15 +144,14 @@ package object bitfrost {
         VectorValues(2.5, 1.0, 13.1666666666667)
       ))
     }
-
     // Apple RGB
     object Apple_RGB extends WorkingSpace {
       override val compander:Compander = Gamma(1.8)
 
       override val primaries:ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary( Vector2(0.625, 0.34), 0.244634 ),
-        ChromaticityPrimary( Vector2(0.28, 0.595), 0.672034 ),
-        ChromaticityPrimary( Vector2(0.155, 0.07), 0.083332 )
+        ChromaticityPrimary( 0.625, 0.34, 0.244634 ),
+        ChromaticityPrimary( 0.28, 0.595, 0.672034 ),
+        ChromaticityPrimary( 0.155, 0.07, 0.083332 )
       )
 
       override val illuminant: Illuminant = D65
@@ -179,9 +167,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.7347, 0.2653), 0.228457),
-        ChromaticityPrimary(Vector2(0.215, 0.775), 0.737352),
-        ChromaticityPrimary(Vector2(0.13, 0.035), 0.034191)
+        ChromaticityPrimary( 0.7347, 0.2653, 0.228457),
+        ChromaticityPrimary( 0.215, 0.775, 0.737352),
+        ChromaticityPrimary( 0.13, 0.035, 0.034191)
       )
 
       override val illuminant: Illuminant = D50
@@ -197,9 +185,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.6888, 0.3112), 0.303273),
-        ChromaticityPrimary(Vector2(0.1986, 0.7551), 0.663786),
-        ChromaticityPrimary(Vector2(0.1265, 0.0352), 0.032941)
+        ChromaticityPrimary( 0.6888, 0.3112, 0.303273),
+        ChromaticityPrimary( 0.1986, 0.7551, 0.663786),
+        ChromaticityPrimary( 0.1265, 0.0352, 0.032941)
       )
 
       override val illuminant: Illuminant = D50
@@ -215,9 +203,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.64, 0.33), 0.240995),
-        ChromaticityPrimary(Vector2(0.28, 0.65), 0.683554),
-        ChromaticityPrimary(Vector2(0.15, 0.06), 0.075452)
+        ChromaticityPrimary( 0.64, 0.33, 0.240995),
+        ChromaticityPrimary( 0.28, 0.65, 0.683554),
+        ChromaticityPrimary( 0.15, 0.06, 0.075452)
       )
 
       override val illuminant: Illuminant = D65
@@ -233,9 +221,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.735, 0.265), 0.176204),
-        ChromaticityPrimary(Vector2(0.274, 0.717), 0.812985),
-        ChromaticityPrimary(Vector2(0.167, 0.009), 0.010811)
+        ChromaticityPrimary( 0.735, 0.265, 0.176204),
+        ChromaticityPrimary( 0.274, 0.717, 0.812985),
+        ChromaticityPrimary( 0.167, 0.009, 0.010811)
       )
 
       override val illuminant: Illuminant = E
@@ -251,9 +239,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(1.8)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.63, 0.34), 0.274884),
-        ChromaticityPrimary(Vector2(0.295, 0.605), 0.658132),
-        ChromaticityPrimary(Vector2(0.15, 0.075), 0.066985)
+        ChromaticityPrimary( 0.63, 0.34, 0.274884),
+        ChromaticityPrimary( 0.295, 0.605, 0.658132),
+        ChromaticityPrimary( 0.15, 0.075, 0.066985)
       )
 
       override val illuminant: Illuminant = D50
@@ -269,9 +257,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.696, 0.3), 0.27835),
-        ChromaticityPrimary(Vector2(0.215, 0.765), 0.68797),
-        ChromaticityPrimary(Vector2(0.13, 0.035), 0.03368)
+        ChromaticityPrimary( 0.696, 0.3, 0.27835),
+        ChromaticityPrimary( 0.215, 0.765, 0.68797),
+        ChromaticityPrimary( 0.13, 0.035, 0.03368)
       )
 
       override val illuminant: Illuminant = D50
@@ -287,9 +275,9 @@ package object bitfrost {
       override val compander: Compander = Lstar
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.67, 0.33), 0.32025),
-        ChromaticityPrimary(Vector2(0.21, 0.71), 0.602071),
-        ChromaticityPrimary(Vector2(0.14, 0.08), 0.077679)
+        ChromaticityPrimary( 0.67, 0.33, 0.32025),
+        ChromaticityPrimary( 0.21, 0.71, 0.602071),
+        ChromaticityPrimary( 0.14, 0.08, 0.077679)
       )
 
       override val illuminant: Illuminant = D50
@@ -305,9 +293,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.695, 0.305), 0.260629),
-        ChromaticityPrimary(Vector2(0.26, 0.7), 0.734946),
-        ChromaticityPrimary(Vector2(0.11, 0.005), 0.004425)
+        ChromaticityPrimary( 0.695, 0.305, 0.260629),
+        ChromaticityPrimary( 0.26, 0.7, 0.734946),
+        ChromaticityPrimary( 0.11, 0.005, 0.004425)
       )
 
       override val illuminant: Illuminant = D50
@@ -322,9 +310,9 @@ package object bitfrost {
     object NTSC_RGB extends WorkingSpace {
       override val compander: Compander = Gamma(2.2)
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.67, 0.33), 0.298839),
-        ChromaticityPrimary(Vector2(0.21, 0.71), 0.586811),
-        ChromaticityPrimary(Vector2(0.14, 0.08), 0.11435)
+        ChromaticityPrimary( 0.67, 0.33, 0.298839),
+        ChromaticityPrimary( 0.21, 0.71, 0.586811),
+        ChromaticityPrimary( 0.14, 0.08, 0.11435)
       )
 
       override val illuminant: Illuminant = C
@@ -341,9 +329,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.64, 0.33), 0.222021),
-        ChromaticityPrimary(Vector2(0.29, 0.6), 0.706645),
-        ChromaticityPrimary(Vector2(0.15, 0.06), 0.071334)
+        ChromaticityPrimary( 0.64, 0.33, 0.222021),
+        ChromaticityPrimary( 0.29, 0.6, 0.706645),
+        ChromaticityPrimary( 0.15, 0.06, 0.071334)
       )
 
       override val illuminant: Illuminant = D65
@@ -361,9 +349,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(1.8)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.7347, 0.2653), 0.28804),
-        ChromaticityPrimary(Vector2(0.1596, 0.8404), 0.711874),
-        ChromaticityPrimary(Vector2(0.0366, 0.0001), 8.6E-05)
+        ChromaticityPrimary( 0.7347, 0.2653, 0.28804),
+        ChromaticityPrimary( 0.1596, 0.8404, 0.711874),
+        ChromaticityPrimary( 0.0366, 0.0001, 8.6E-05)
       )
 
       override val illuminant: Illuminant = D50
@@ -380,9 +368,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.63, 0.34), 0.212395),
-        ChromaticityPrimary(Vector2(0.31, 0.595), 0.701049),
-        ChromaticityPrimary(Vector2(0.155, 0.07), 0.086556)
+        ChromaticityPrimary( 0.63, 0.34, 0.212395),
+        ChromaticityPrimary( 0.31, 0.595, 0.701049),
+        ChromaticityPrimary( 0.155, 0.07, 0.086556)
       )
 
       override val illuminant: Illuminant = D65
@@ -398,9 +386,9 @@ package object bitfrost {
       override val compander: Compander = SRGB // ~2.2 ?
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.64, 0.33), 0.212656),
-        ChromaticityPrimary(Vector2(0.3, 0.6), 0.715158),
-        ChromaticityPrimary(Vector2(0.15, 0.06), 0.072186)
+        ChromaticityPrimary( 0.64, 0.33, 0.212656),
+        ChromaticityPrimary( 0.3, 0.6, 0.715158),
+        ChromaticityPrimary( 0.15, 0.06, 0.072186)
       )
 
       override val illuminant: Illuminant = D65
@@ -416,9 +404,9 @@ package object bitfrost {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
-        ChromaticityPrimary(Vector2(0.735, 0.265), 0.258187),
-        ChromaticityPrimary(Vector2(0.115, 0.826), 0.724938),
-        ChromaticityPrimary(Vector2(0.157, 0.018), 0.016875)
+        ChromaticityPrimary( 0.735, 0.265, 0.258187),
+        ChromaticityPrimary( 0.115, 0.826, 0.724938),
+        ChromaticityPrimary( 0.157, 0.018, 0.016875)
       )
 
       override val illuminant: Illuminant = D50

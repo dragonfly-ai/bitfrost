@@ -8,7 +8,7 @@ import java.io.File
 import javax.imageio.ImageIO
 
 object ColorSpaceNoise extends App {
-  val (w: Int, h: Int) = (1080, 1080)
+  val (w: Int, h: Int) = (512, 512)
   val bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
 
   import Adobe_RGB_1998.*

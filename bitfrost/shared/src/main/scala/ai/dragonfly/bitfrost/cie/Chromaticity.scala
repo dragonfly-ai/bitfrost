@@ -1,15 +1,16 @@
 package ai.dragonfly.bitfrost.cie
 
 import Jama.Matrix
+import ai.dragonfly.math.matrix
 import ai.dragonfly.math.matrix.MatrixValues
+import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
+import ai.dragonfly.math.matrix.util.asColumnMatrix
 import ai.dragonfly.math.vector.{Vector2, VectorValues}
 
 object ChromaticityPrimary {
   def inferThird(cp1: ChromaticityPrimary, cp2: ChromaticityPrimary): ChromaticityPrimary = ChromaticityPrimary(
-    Vector2(
-      1.0 - (cp1.x + cp2.x),
-      1.0 - (cp1.y + cp2.y)
-    ),
+    1.0 - (cp1.x + cp2.x),
+    1.0 - (cp1.y + cp2.y),
     1.0 - (cp1.Y + cp2.Y)
   )
 }
@@ -21,9 +22,7 @@ object ChromaticityPrimary {
  * @param Y weight between [0.0, 1.0] (reflected by xy relative to other primaries)
  */
 
-case class ChromaticityPrimary(v:Vector2, Y:Double) {
-  export v.{x, y}
-}
+case class ChromaticityPrimary(x:Double, y:Double, Y:Double)
 
 /**
  * Assumes:
@@ -31,21 +30,24 @@ case class ChromaticityPrimary(v:Vector2, Y:Double) {
  * RED.y + GEEN.y + BLUE.y = 1.0
  * RED.Y + GEEN.Y + BLUE.Y = 1.0
  *
- * @param RED red chromatic primary
- * @param GREEN green chromatic primary
- * @param BLUE blue chromatic primary
+ * @param red red chromatic primary
+ * @param green green chromatic primary
+ * @param blue blue chromatic primary
  */
 
-case class ChromaticityPrimaries(RED: ChromaticityPrimary, GREEN: ChromaticityPrimary, BLUE: ChromaticityPrimary) {
+case class ChromaticityPrimaries(red: ChromaticityPrimary, green: ChromaticityPrimary, blue: ChromaticityPrimary) {
 
-  // http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
-  lazy val xyzXrgb_T:Matrix = new Matrix(
-    MatrixValues(
-      VectorValues( RED.x / RED.y, 1.0, (1.0 - RED.x - RED.y) / RED.y ),
-      VectorValues( GREEN.x / GREEN.y, 1.0, (1.0 - GREEN.x - GREEN.y) / GREEN.y ),
-      VectorValues( BLUE.x / BLUE.y, 1.0, (1.0 - BLUE.x - BLUE.y) / BLUE.y )
-    )
+  // from http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
+
+  def raw(S: VectorValues = VectorValues(1.0, 1.0, 1.0)):MatrixValues = MatrixValues(
+    VectorValues( S(0) * (red.x / red.y)                , S(1) * (green.x / green.y)                  , S(2) * (blue.x / blue.y)                  ),
+    S,
+    VectorValues( S(0) * ((1.0 - red.x - red.y) / red.y), S(1) * ((1.0 - green.x - green.y) / green.y), S(2) * ((1.0 - blue.x - blue.y) / blue.y) )
   )
 
-  lazy val xyzXrgbInv:Matrix = xyzXrgb_T.transpose().inverse()
+  lazy val xyzXrgbInv:Matrix = new Matrix(raw()).inverse()
+
+  def getM(illuminant: Illuminant):Matrix = {
+    new Matrix(raw((xyzXrgbInv * illuminant.vector.asColumnMatrix).getRowPackedCopy()))
+  }
 }

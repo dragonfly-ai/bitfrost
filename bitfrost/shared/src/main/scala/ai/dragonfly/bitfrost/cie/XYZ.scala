@@ -21,9 +21,7 @@ import scala.language.implicitConversions
  */
 
 object XYZ {
-
-  inline def transform(v:Vector3):Double = 1.0 / (v.x - (15.0 * v.y) + (3.0 * v.z))
-
+  
   def toNRGB(workingSpace: WorkingSpace)(xyz:XYZ):workingSpace.NRGB = {
     val temp:VectorValues = (workingSpace.M_inverse * xyz.asColumnMatrix).getRowPackedCopy()
     for (i <- temp.indices) temp(i) = workingSpace.compander.encode(temp(i))
