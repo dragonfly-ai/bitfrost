@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost
 
-import ai.dragonfly.bitfrost.cie.{WorkingSpace, XYZ}
+import ai.dragonfly.bitfrost.colorspace.{WorkingSpace, XYZ}
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
 import ai.dragonfly.math.vector.*
 

@@ -1,4 +1,4 @@
-package ai.dragonfly.bitfrost.cie
+package ai.dragonfly.bitfrost.colorspace
 
 import Jama.Matrix
 import ai.dragonfly.math.matrix
@@ -19,7 +19,7 @@ object ChromaticityPrimary {
  * Given two primaries: the third can be inferred.
  *
  * @param v Primary x, y with x between [0.0, 1.0] and y between [0.0, 1.0]
- * @param Y weight between [0.0, 1.0] (reflected by xy relative to other primaries)
+ * @param Y brightness of the primary
  */
 
 case class ChromaticityPrimary(x:Double, y:Double, Y:Double)

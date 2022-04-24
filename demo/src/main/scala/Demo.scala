@@ -1,6 +1,6 @@
 
 import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.cie.WorkingSpace
+import ai.dragonfly.bitfrost.colorspace.WorkingSpace
 import ai.dragonfly.bitfrost.context.Adobe_RGB_1998
 import ai.dragonfly.math.Random.defaultRandom
 

@@ -1,4 +1,4 @@
-package ai.dragonfly.bitfrost.cie
+package ai.dragonfly.bitfrost.colorspace
 
 import ai.dragonfly.math.vector.Vector3
 

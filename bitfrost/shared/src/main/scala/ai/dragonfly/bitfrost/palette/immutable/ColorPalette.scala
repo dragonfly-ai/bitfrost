@@ -2,7 +2,7 @@ package ai.dragonfly.bitfrost.palette.immutable
 
 import ai.dragonfly.math.matrix.*
 import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.cie.WorkingSpace
+import ai.dragonfly.bitfrost.colorspace.WorkingSpace
 import ai.dragonfly.math.Euclidean
 
 import scala.collection.*

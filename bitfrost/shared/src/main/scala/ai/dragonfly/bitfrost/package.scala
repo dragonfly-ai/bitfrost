@@ -7,7 +7,7 @@ import ai.dragonfly.math.matrix.*
 import ai.dragonfly.math.matrix.MatrixValues
 import ai.dragonfly.math.squareInPlace
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
-
+import ai.dragonfly.bitfrost.colormodel.*
 
 package object bitfrost {
 
@@ -117,17 +117,17 @@ package object bitfrost {
 
   object context {
 
-    import ai.dragonfly.bitfrost.cie.*
+    import ai.dragonfly.bitfrost.colorspace.*
     import Illuminant.*
 
-    val knownContexts:Array[WorkingSpace] = Array[WorkingSpace](
+    val knownContexts:Array[WorkingSpace with ProvidedColorModels] = Array[WorkingSpace with ProvidedColorModels](
       Adobe_RGB_1998, Apple_RGB, Best_RGB, Beta_RGB, Bruce_RGB, CIE_RGB, ColorMatch_RGB, Don_RGB_4, ECI_RGB_v2,
       Ekta_Space_PS5, NTSC_RGB, PAL_RGB, ProPhoto_RGB, SMPTE_Minus_C_RGB, sRGB, Wide_Gamut_RGB
     )
 
     //Adobe RGB (1998)
     // specification: https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
-    object Adobe_RGB_1998 extends WorkingSpace {
+    object Adobe_RGB_1998 extends ProvidedColorModels {
       override val compander:Compander = Gamma(2.19921875)
 
       override val primaries:ChromaticityPrimaries = ChromaticityPrimaries(
@@ -145,7 +145,7 @@ package object bitfrost {
       ))
     }
     // Apple RGB
-    object Apple_RGB extends WorkingSpace {
+    object Apple_RGB extends ProvidedColorModels {
       override val compander:Compander = Gamma(1.8)
 
       override val primaries:ChromaticityPrimaries = ChromaticityPrimaries(
@@ -163,7 +163,7 @@ package object bitfrost {
       ))
     }
     // Best RGB
-    object Best_RGB extends WorkingSpace {
+    object Best_RGB extends ProvidedColorModels {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -181,7 +181,7 @@ package object bitfrost {
       ))
     }
 
-    object Beta_RGB extends WorkingSpace {
+    object Beta_RGB extends ProvidedColorModels {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -199,7 +199,7 @@ package object bitfrost {
       ))
     }
 
-    object Bruce_RGB extends WorkingSpace {
+    object Bruce_RGB extends ProvidedColorModels {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -217,7 +217,7 @@ package object bitfrost {
       ))
     }
 
-    object CIE_RGB extends WorkingSpace {
+    object CIE_RGB extends ProvidedColorModels {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -235,7 +235,7 @@ package object bitfrost {
       ))
     }
 
-    object ColorMatch_RGB extends WorkingSpace {
+    object ColorMatch_RGB extends ProvidedColorModels {
       override val compander: Compander = Gamma(1.8)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -253,7 +253,7 @@ package object bitfrost {
       ))
     }
 
-    object Don_RGB_4 extends WorkingSpace {
+    object Don_RGB_4 extends ProvidedColorModels {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -271,7 +271,7 @@ package object bitfrost {
       ))
     }
 
-    object ECI_RGB_v2 extends WorkingSpace {
+    object ECI_RGB_v2 extends ProvidedColorModels {
       override val compander: Compander = Lstar
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -289,7 +289,7 @@ package object bitfrost {
       ))
     }
 
-    object Ekta_Space_PS5 extends WorkingSpace {
+    object Ekta_Space_PS5 extends ProvidedColorModels {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -307,7 +307,7 @@ package object bitfrost {
       ))
     }
 
-    object NTSC_RGB extends WorkingSpace {
+    object NTSC_RGB extends ProvidedColorModels {
       override val compander: Compander = Gamma(2.2)
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.67, 0.33, 0.298839),
@@ -325,7 +325,7 @@ package object bitfrost {
     }
 
     // PAL/SECAM RGB
-    object PAL_RGB extends WorkingSpace {
+    object PAL_RGB extends ProvidedColorModels {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -345,7 +345,7 @@ package object bitfrost {
 
     val SECAM_RGB = PAL_RGB
 
-    object ProPhoto_RGB extends WorkingSpace {
+    object ProPhoto_RGB extends ProvidedColorModels {
       override val compander: Compander = Gamma(1.8)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -364,7 +364,7 @@ package object bitfrost {
     }
 
     // SMPTE-C RGB
-    object SMPTE_Minus_C_RGB extends WorkingSpace {
+    object SMPTE_Minus_C_RGB extends ProvidedColorModels {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -382,7 +382,7 @@ package object bitfrost {
       ))
     }
 
-    object sRGB extends WorkingSpace {
+    object sRGB extends ProvidedColorModels {
       override val compander: Compander = SRGB // ~2.2 ?
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -400,7 +400,7 @@ package object bitfrost {
       ))
     }
 
-    object Wide_Gamut_RGB extends WorkingSpace {
+    object Wide_Gamut_RGB extends ProvidedColorModels {
       override val compander: Compander = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -416,6 +416,19 @@ package object bitfrost {
         VectorValues(0.139225181598063, 1.0, 0.071428571428571),
         VectorValues(8.72222222222222, 1.0, 45.8333333333333)
       ))
+    }
+
+    object P3_D65_Display extends ProvidedColorModels {
+      //https://www.dcimovies.com/archives/spec_v1/DCI_Digital_Cinema_System_Spec_v1.pdf
+      override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
+        ChromaticityPrimary( 0.6800, 0.3200, Double.NaN),
+        ChromaticityPrimary( 0.2650, 0.6900, Double.NaN),
+        ChromaticityPrimary( 0.1500, 0.0600, Double.NaN)
+      )
+      override val compander: Compander = SRGB
+
+      override val illuminant: Illuminant = D65
+
     }
 
   }

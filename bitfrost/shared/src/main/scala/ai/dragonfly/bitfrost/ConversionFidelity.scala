@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost
 
-import ai.dragonfly.bitfrost.cie.XYZ
+import ai.dragonfly.bitfrost.colorspace.XYZ
 
 object ConversionFidelity extends App {
   for (ctx <- context.knownContexts.take(1)) {
