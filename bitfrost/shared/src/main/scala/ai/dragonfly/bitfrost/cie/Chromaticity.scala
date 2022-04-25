@@ -1,4 +1,4 @@
-package ai.dragonfly.bitfrost.colorspace
+package ai.dragonfly.bitfrost.cie
 
 import Jama.Matrix
 import ai.dragonfly.math.matrix

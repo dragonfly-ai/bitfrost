@@ -1,6 +1,6 @@
 
 import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.colorspace.WorkingSpace
+import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.context.Adobe_RGB_1998
 import ai.dragonfly.math.Random.defaultRandom
 
@@ -20,13 +20,13 @@ object Demo {
     import Adobe_RGB_1998.*
 
     // generate random color palette
-    val colors:mutable.HashSet[NRGB] = mutable.HashSet[NRGB]()
+    val colors:mutable.HashSet[RGB] = mutable.HashSet[RGB]()
     while (colors.size < 50) {
-      val c:NRGB = NRGB.random()
+      val c:RGB = RGB.random()
       if (!colors.contains(c)) colors.add(c)
     }
 
-    val cp = ColorPalette[NRGB]( immutable.HashMap.from[NRGB, Int](colors.map { _ -> r.nextInt(1000) }) )
+    val cp = ColorPalette[RGB]( immutable.HashMap.from[RGB, Int](colors.map { _ -> r.nextInt(1000) }) )
 
     val content = div(
       div(
@@ -35,7 +35,7 @@ object Demo {
         table(
           tr(td("Color"), td("Frequency")),
           cp.colorFrequencies.map {
-            cf => tr(td(backgroundColor := cf.color.toARGB.html())(raw("&nbsp;")), td(cf.frequency))
+            cf => tr(td(backgroundColor := ARGB32.fromRGB(cf.color).html())(raw("&nbsp;")), td(cf.frequency))
           }
         )
       ),
@@ -45,9 +45,9 @@ object Demo {
         table(
           tr(td("Random Color"), td("Nearest Match from Palette"), td("Distance in L*a*b* Space")),
           (1 to 100).map( _ => {
-            val nrgb: NRGB = NRGB.random()
-            val m: NRGB = cp.nearestMatch(nrgb).color
-            tr( td(backgroundColor := nrgb.toARGB.html())(raw("&nbsp;")), td(backgroundColor := m.toARGB.html())(raw("&nbsp;")), td(nrgb.similarity(m)))
+            val rgb: RGB = RGB.random()
+            val m: RGB = cp.nearestMatch(rgb).color
+            tr( td(backgroundColor := ARGB32.fromRGB(rgb).html())(raw("&nbsp;")), td(backgroundColor := ARGB32.fromRGB(m).html())(raw("&nbsp;")), td(rgb.similarity(m)))
           })
         )
       )

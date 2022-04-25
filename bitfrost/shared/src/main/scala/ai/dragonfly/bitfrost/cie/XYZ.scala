@@ -1,4 +1,4 @@
-package ai.dragonfly.bitfrost.colorspace
+package ai.dragonfly.bitfrost.cie
 
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.math.*
@@ -22,10 +22,10 @@ import scala.language.implicitConversions
 
 object XYZ {
   
-  def toNRGB(workingSpace: WorkingSpace)(xyz:XYZ):workingSpace.NRGB = {
+  def toRGB(workingSpace: WorkingSpace)(xyz:XYZ):workingSpace.RGB = {
     val temp:VectorValues = (workingSpace.M_inverse * xyz.asColumnMatrix).getRowPackedCopy()
-    for (i <- temp.indices) temp(i) = workingSpace.compander.encode(temp(i))
-    workingSpace.NRGB(temp)
+    for (i <- temp.indices) temp(i) = workingSpace.transferFunction.encode(temp(i))
+    workingSpace.RGB(temp)
   }
 
   //def toARGB(workingSpace: WorkingSpace)(xyz:XYZ):workingSpace.ARGB = toNRGB(workingSpace)(xyz).toARGB.asInstanceOf[workingSpace.ARGB]

@@ -1,13 +1,14 @@
-package ai.dragonfly.bitfrost.colormodel
+package ai.dragonfly.bitfrost.color.model
 
 import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.colorspace.*
+import ai.dragonfly.bitfrost.cie.*
+import ai.dragonfly.bitfrost.color.*
 import ai.dragonfly.math.{Random, cubeInPlace}
 import ai.dragonfly.math.vector.{Vector2, Vector3, VectorValues, dimensionCheck}
 
 import scala.language.{implicitConversions, postfixOps}
 
-trait Luv { self: WorkingSpace =>
+trait Luv extends ColorModel { self: WorkingSpace =>
 
   object UV {
 
@@ -33,7 +34,7 @@ trait Luv { self: WorkingSpace =>
     }
   }
 
-  object Luv extends PerceptualColorSpace[Luv] {
+  object Luv extends PerceptualColorCompanion[Luv] {
 
     def apply(values: VectorValues): Luv = new Luv(dimensionCheck(values, 3))
 

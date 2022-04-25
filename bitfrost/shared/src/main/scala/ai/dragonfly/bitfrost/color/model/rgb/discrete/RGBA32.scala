@@ -1,132 +1,117 @@
-package ai.dragonfly.bitfrost.colormodel
+package ai.dragonfly.bitfrost.color.model.rgb.discrete
 
-import ai.dragonfly.bitfrost.colorspace.WorkingSpace
-
-import ai.dragonfly.bitfrost.{DiscreteColor, DiscreteColorSpace, RGB}
+import ai.dragonfly.bitfrost.cie.WorkingSpace
+import ai.dragonfly.bitfrost.color.model.ColorModel
+import ai.dragonfly.bitfrost.color.{DiscreteColor, DiscreteColorModelCompanion}
 import ai.dragonfly.math.{Random, squareInPlace}
+
 import scala.language.implicitConversions
 
-trait ARGB { self: WorkingSpace =>
+trait RGBA32 extends ColorModel {
+  self: WorkingSpace =>
 
-  given Conversion[java.awt.Color, ARGB] with
-    def apply(jac: java.awt.Color): ARGB = ARGB(jac.getRGB())
+  given Conversion[java.awt.Color, RGBA32] with
+    def apply(jac: java.awt.Color): RGBA32 = RGBA32(jac.getRGB() << 24 | jac.getAlpha())
 
-  given Conversion[ARGB, java.awt.Color] with
-    def apply(c: ARGB): java.awt.Color = new java.awt.Color(c.argb, true)
+  given Conversion[RGBA32, java.awt.Color] with
+    def apply(c: RGBA32): java.awt.Color = new java.awt.Color(c.red, c.green, c.blue, c.alpha)
 
-  given Conversion[Int, ARGB] with
-    def apply(argb: Int): ARGB = ARGB(argb)
+  given Conversion[Int, RGBA32] with
+    def apply(argb: Int): RGBA32 = RGBA32(argb)
 
-  given Conversion[ARGB, Int] with
-    def apply(c: ARGB): Int = c.argb
+  given Conversion[RGBA32, Int] with
+    def apply(c: RGBA32): Int = c.rgba
 
-  object ARGB extends DiscreteColorSpace[ARGB] {
-    def apply(argb: Int): ARGB = new ARGB(argb)
+  object RGBA32 extends DiscreteColorModelCompanion[RGBA32] with UtilRGB32[RGBA32] {
+    def apply(rgba: Int): RGBA32 = new RGBA32(rgba)
 
     /**
-     * Factory method to create a fully opaque ARGB instance from separate, specified red, green, blue components and
+     * Factory method to create a fully opaque RGBA32 instance from separate, specified red, green, blue components and
      * a default alpha value of 255.
      * Parameter values are derived from the least significant byte.  Integer values that range outside of [0-255] may
      * give unexpected results.  For values taken from user input, sensors, or otherwise uncertain sources, consider using
      * the factory method in the Color companion object.
      *
-     * @see [[ai.dragonfly.color.ColorVectorSpace.argb]] for a method of constructing ARGB objects that validates inputs.
+     * @see [[ai.dragonfly.color.ColorVectorSpace.argb]] for a method of constructing RGBA32 objects that validates inputs.
      * @param red   integer value from [0-255] representing the red component in RGB space.
      * @param green integer value from [0-255] representing the green component in RGB space.
      * @param blue  integer value from [0-255] representing the blue component in RGB space.
-     * @return an instance of the ARGB case class.
-     * @example {{{ val c = ARGB(72,105,183) }}}
+     * @return an instance of the RGBA32 case class.
+     * @example {{{ val c = RGBA32(72,105,183) }}}
      */
-    def apply(red: Int, green: Int, blue: Int): ARGB = apply(255, red, green, blue)
+    def apply(red: Int, green: Int, blue: Int): RGBA32 = apply(red, green, blue, 255)
 
 
     /**
-     * Factory method to create an ARGB instance from separate, specified red, green, blue, and alpha components.
+     * Factory method to create an RGBA32 instance from separate, specified red, green, blue, and alpha components.
      * Parameter values are derived from the least significant byte.  Integer values that range outside of [0-255] may
      * give unexpected results.  For values taken from user input, sensors, or otherwise uncertain sources, consider using
      * the factory method in the Color companion object.
      *
-     * @see [[ai.dragonfly.color.ARGB.getIfValid]] for a method of constructing ARGB objects with input validation.
-     * @param alpha integer value from [0-255] representing the alpha component in ARGB space.  Defaults to 255.
+     * @see [[ai.dragonfly.color.RGBA32.getIfValid]] for a method of constructing RGBA32 objects with input validation.
+     * @param alpha integer value from [0-255] representing the alpha component in RGBA32 space.  Defaults to 255.
      * @param red   integer value from [0-255] representing the red component in RGB space.
      * @param green integer value from [0-255] representing the green component in RGB space.
      * @param blue  integer value from [0-255] representing the blue component in RGB space.
-     * @return an instance of the ARGB case class.
-     * @example {{{ val c = ARGB(72,105,183) }}}
+     * @return an instance of the RGBA32 case class.
+     * @example {{{ val c = RGBA32(72,105,183) }}}
      */
-    def apply(alpha: Int, red: Int, green: Int, blue: Int): ARGB = apply((alpha << 24) | (red << 16) | (green << 8) | blue)
+    def apply(red: Int, green: Int, blue: Int, alpha: Int): RGBA32 = apply((red << 24) | (green << 16) | (blue << 8) | alpha)
+
+    inline def clamp(red: Double, green: Double, blue: Double): Int = clamp(red, green, blue, MAX)
 
     /**
-     * Factory method to create a fully Opaque ARGB color; one with an alpha value of 255.
+     * Factory method to create a fully Opaque RGBA32 color; one with an alpha value of 255.
      * Because this method validates each intensity, it sacrifices performance
      * for safety.  Although well suited for parsing color data generated by sensors or user input, this method undercuts
      * performance in applications like reading image data.
      *
-     * To skip validation and minimize overhead, @see [[ai.dragonfly.color.ARGB.apply]]
+     * To skip validation and minimize overhead, @see [[ai.dragonfly.color.RGBA32.apply]]
      *
      * @param red   integer value from [0-255] representing the red component in RGB space.
      * @param green integer value from [0-255] representing the green component in RGB space.
      * @param blue  integer value from [0-255] representing the blue component in RGB space.
-     * @return an instance of the ARGB class or None if fed invalid input.
+     * @return an instance of the RGBA32 class or None if fed invalid input.
      */
-    def getIfValid(red: Int, green: Int, blue: Int): Option[ARGB] = getIfValid(255, red, green, blue)
+    def getIfValid(red: Int, green: Int, blue: Int): Option[RGBA32] = getIfValid(255, red, green, blue)
 
     /**
-     * Factory method to create an ARGB color.  Because this method validates each intensity, it sacrifices performance
+     * Factory method to create an RGBA32 color.  Because this method validates each intensity, it sacrifices performance
      * for safety.  Although well suited for parsing color data generated by sensors or user input, this method undercuts
      * performance in applications like reading image data.
      *
-     * To skip validation and minimize overhead, @see [[ai.dragonfly.color.ARGB.apply]]
+     * To skip validation and minimize overhead, @see [[ai.dragonfly.color.RGBA32.apply]]
      *
-     * @param alpha integer value from [0-255] representing the alpha component in ARGB space.
+     * @param alpha integer value from [0-255] representing the alpha component in RGBA32 space.
      * @param red   integer value from [0-255] representing the red component in RGB space.
      * @param green integer value from [0-255] representing the green component in RGB space.
      * @param blue  integer value from [0-255] representing the blue component in RGB space.
      * @return an instance of the C class or None if fed invalid input.
      */
-    def getIfValid(alpha: Int, red: Int, green: Int, blue: Int): Option[ARGB] = {
-      if (RGB.valid(alpha, red, green, blue)) Some(apply(alpha, red, green, blue))
+    def getIfValid(red: Int, green: Int, blue: Int, alpha: Int): Option[RGBA32] = {
+      if (valid(red, green, blue, alpha)) Some(apply(red, green, blue, alpha))
       else None
     }
 
-    override def weightedAverage(c1: ARGB, w1: Double, c2: ARGB, w2: Double): ARGB = {
-      NRGB.weightedAverage(NRGB(c1), w1, NRGB(c2), w2).toARGB
+    override def weightedAverage(c1: RGBA32, w1: Double, c2: RGBA32, w2: Double): RGBA32 = {
+      fromRGB(RGB.weightedAverage(RGB(c1), w1, RGB(c2), w2))
     }
 
+    def fromRGB(rgb: RGB): RGBA32 = apply(clamp(rgb.red * MAX, rgb.green * MAX, rgb.blue * MAX))
+
     /**
-     * Generate an ARGB instance from a single value.  This method validates the intensity parameter at some cost to performance.
+     * Generate an RGBA32 instance from a single value.  This method validates the intensity parameter at some cost to performance.
      *
      * @param intensity the intensity of the desired gray value ranging from [0-255].
-     * @return an ARGB instance encoding the desired grayscale intensity.
+     * @return an RGBA32 instance encoding the desired grayscale intensity.
      */
-    def grayIfValid(intensity: Int): Option[ARGB] = {
-      if (RGB.valid(intensity)) Some(apply(intensity, intensity, intensity))
+    def grayIfValid(intensity: Int): Option[RGBA32] = {
+      if (RGB.valid0to1(intensity)) Some(apply(intensity, intensity, intensity))
       else None
     }
 
     /**
-     * Generate an ARGB instance from a single value, skipping all overhead and validation.  Not suited for intensity data
-     * provided by users, sensors, or other unreliable sources.
-     *
-     * @param intensity the intensity of the desired gray value ranging from [0-255].
-     * @return an ARGB instance encoding the desired grayscale intensity.
-     */
-    def gray(intensity: Int): ARGB = apply(intensity, intensity, intensity)
-
-    def CLEAR: ARGB = apply(0, 0, 0, 0)
-
-    def BLACK: ARGB = apply(0, 0, 0)
-
-    def WHITE: ARGB = apply(255, 255, 255)
-
-    def GRAY: ARGB = apply(127, 127, 127)
-
-    def DARK_GRAY: ARGB = gray(63)
-
-    def LIGHT_GRAY: ARGB = gray(191)
-
-    /**
-     * Use Color.random() to obtain a random color in the form of an ARGB instance.
+     * Use Color.random() to obtain a random color in the form of an RGBA32 instance.
      * This method executes quickly and without memory costs, but the RGB color space biases toward cool colors.
      * In contrast, the Color.randomFromLabSpace() method takes seconds to initialize and has a memory footprint of several megabytes
      * However, it samples from a perceptually uniform color space and avoids the bias toward cool colors.
@@ -134,51 +119,55 @@ trait ARGB { self: WorkingSpace =>
      *
      * @return a randomly generated color sampled from the RGB Color Space.
      */
-    override def random(r: scala.util.Random = Random.defaultRandom): ARGB = 0xFF000000 | r.nextInt(0xFFFFFF)
+    override def random(r: scala.util.Random = Random.defaultRandom): RGBA32 = (r.nextInt(0xFFFFFF) << 8 ) | 0xFF
   }
 
 
   /**
-   * ARGB is the primary case class for representing colors in ARGB space.
+   * RGBA32 is the primary case class for representing colors in RGBA32 space.
    *
-   * @constructor Create a new ARGB object from an Int.
+   * @constructor Create a new RGBA32 object from an Int.
    * @see [[https://en.wikipedia.org/wiki/RGB_color_space]] for more information on the RGB color space.
-   * @param argb a 32 bit integer that represents this color in ARGB space.
+   * @param rgba a 32 bit integer that represents this color in RGBA32 space.
    *             The most significant byte encodes the alpha value, the second most significant byte encodes red,
    *             the third most significant byte encodes green, and the least significant byte encodes blue.
-   * @return an instance of the ARGB case class.
+   * @return an instance of the RGBA32 case class.
    * @example {{{
-   * val c = ARGB(-1)  // returns fully opaque white
-   * c.toString()  // returns "ARGB(255,255,255,255)"
-   * ARGB(0xFF0000FF).toString() // returns "ARGB(255,0,0,255)"
+   * val c = RGBA32(-1)  // returns fully opaque white
+   * c.toString()  // returns "RGBA32(255,255,255,255)"
+   * RGBA32(0xFF0000FF).toString() // returns "RGBA32(255,0,0,255)"
    * }}}
    */
-  case class ARGB(argb: Int) extends DiscreteColor[ARGB] {
-    /**
-     * @return the alpha component of this color in ARGB space.
-     */
-    inline def alpha: Int = argb >> 24 & 0xff
+  case class RGBA32(rgba: Int) extends DiscreteRGB[RGBA32] {
+
 
     /**
-     * @return the red component of this color in ARGB space.
+     * @return the red component of this color in RGBA32 space.
      */
-    inline def red: Int = argb >> 16 & 0xff
+    inline def red: Int = rgba >> 24 & 0xff
 
     /**
-     * @return the green component of this color in ARGB space.
+     * @return the green component of this color in RGBA32 space.
      */
-    inline def green: Int = argb >> 8 & 0xff
+    inline def green: Int = rgba >> 16 & 0xff
 
     /**
-     * @return the blue component of this color in ARGB space.
+     * @return the blue component of this color in RGBA32 space.
      */
-    inline def blue: Int = argb & 0xff
+    inline def blue: Int = rgba >> 8 & 0xff
 
-    inline def toNRGB: NRGB = {
-      NRGB(this)
+    /**
+     * @return the alpha component of this color in RGBA32 space.
+     */
+    inline def alpha: Int = rgba & 0xff
+
+    inline def toRGB: RGB = {
+      RGB(this)
     }
 
-    override def similarity(that: ARGB): Double = Math.sqrt(
+    inline def toARGB32: ARGB32 = ARGB32(alpha, red, green, blue)
+
+    override def similarity(that: RGBA32): Double = Math.sqrt(
       squareInPlace(red - that.red) +
         squareInPlace(green - that.green) +
         squareInPlace(blue - that.blue)
@@ -187,13 +176,13 @@ trait ARGB { self: WorkingSpace =>
     /**
      * @return the hashcode.  For all color types, the hashcode function returns the same result as argb
      */
-    override def hashCode(): Int = argb
+    override def hashCode(): Int = rgba
 
     /**
      * @return true if these colors are equal in RGBA space, false otherwise
      */
     override def equals(obj: Any): Boolean = obj match {
-      case that: ARGB => this.argb == that.argb
+      case that: RGBA32 => this.rgba == that.rgba
       case _ => false
     }
 
@@ -204,7 +193,7 @@ trait ARGB { self: WorkingSpace =>
      * c.hex() // returns "ff4869b7"
      * }}}
      */
-    def hex(): String = Integer.toHexString(argb)
+    def hex(): String = Integer.toHexString(rgba)
 
     /**
      * @return a string representing the color in an html friendly way.
@@ -213,7 +202,7 @@ trait ARGB { self: WorkingSpace =>
      * c.html() // returns "#4869b7"
      * }}}
      */
-    def html(): String = "#" + Integer.toHexString(argb | 0xff000000).substring(2)
+    def html(): String = "#" + Integer.toHexString(rgba | 0xff000000).substring(2)
 
     /**
      * @return a string representing the color in an SVG friendly way.
@@ -250,7 +239,7 @@ trait ARGB { self: WorkingSpace =>
      */
     def css: () => String = svg
 
-    override val toString: String = s"ARGB($alpha, $red, $green, $blue)"
+    override def toString: String = s"RGBA32($red, $green, $blue, $alpha)"
   }
 
 

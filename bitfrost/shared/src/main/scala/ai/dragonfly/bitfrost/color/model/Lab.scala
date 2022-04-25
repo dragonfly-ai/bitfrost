@@ -1,15 +1,16 @@
-package ai.dragonfly.bitfrost.colormodel
+package ai.dragonfly.bitfrost.color.model
 
 import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.colorspace.*
+import ai.dragonfly.bitfrost.cie.*
+import ai.dragonfly.bitfrost.color.*
 import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
 import ai.dragonfly.math.{Random, cubeInPlace}
 
 import scala.language.{implicitConversions, postfixOps}
 
-trait Lab { self: WorkingSpace =>
+trait Lab extends ColorModel { self: WorkingSpace =>
 
-  object Lab extends PerceptualColorSpace[Lab] {
+  object Lab extends PerceptualColorCompanion[Lab] {
     def apply(values: VectorValues): Lab = new Lab(dimensionCheck(values, 3))
 
     override def random(r: scala.util.Random = Random.defaultRandom): Lab = ???

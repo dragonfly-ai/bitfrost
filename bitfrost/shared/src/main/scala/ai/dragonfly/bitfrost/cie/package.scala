@@ -2,7 +2,7 @@ package ai.dragonfly.bitfrost
 
 import ai.dragonfly.math.vector.Vector3
 
-package object colorspace {
+package object cie {
 
   type XYZ = Vector3
 

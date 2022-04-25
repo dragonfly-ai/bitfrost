@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.experiments
 
-import ai.dragonfly.bitfrost.ColorSpace
+import ai.dragonfly.bitfrost.color.ColorModelCompanion
 import ai.dragonfly.bitfrost.context.Adobe_RGB_1998
 
 import java.awt.image.BufferedImage
@@ -13,20 +13,20 @@ object ColorSpaceNoise extends App {
 
   import Adobe_RGB_1998.*
 
-  println(ARGB(50, 100, 150))
-  println(ARGB.random())
+  println(ARGB32(50, 100, 150))
+  println(ARGB32.random())
 
-  val colorSpaces: Seq[ColorSpace[_]] = Seq[ColorSpace[_]](
-    ARGB, NRGB, CMYK, HSL, HSV
+  val colorSpaces: Seq[ColorModelCompanion[_]] = Seq[ColorModelCompanion[_]](
+    ARGB32, RGB, CMYK, HSL, HSV
   )
 
   for (space <- colorSpaces) {
     for (y <- 0 until h) {
       for (x <- 0 until w) {
         val pixel: Int = space.random() match {
-          case c: ARGB => c.argb
-          case c: NRGB => c.toARGB.argb
-          case c: CommonColor[_] => c.toNRGB.toARGB.argb
+          case argb32: ARGB32 => argb32.argb
+          case rgb: RGB => ARGB32.fromRGB(rgb).argb
+          case c: CommonColor[_] => ARGB32.fromRGB(c.toRGB).argb
         }
         bi.setRGB(x, y, pixel)
       }

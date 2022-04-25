@@ -1,19 +1,19 @@
-package ai.dragonfly.bitfrost.colormodel
+package ai.dragonfly.bitfrost.color.model
 
-import ai.dragonfly.bitfrost.colorspace.WorkingSpace
+import ai.dragonfly.bitfrost.*
+import ai.dragonfly.bitfrost.color.*
+import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 
-trait CMYK { self: WorkingSpace =>
+trait CMYK extends ColorModel { self: WorkingSpace =>
 
-  object CMYK extends CommonColorSpace[CMYK] {
+  object CMYK extends CommonColorCompanion[CMYK] with NormalizedValue {
 
     def apply(values: VectorValues): CMYK = new CMYK(dimensionCheck(values, 4))
 
     def apply(cyan: Double, magenta: Double, yellow: Double, black: Double): CMYK = apply(VectorValues(cyan, magenta, yellow, black))
 
-
-    inline def valid(weight: Double): Boolean = weight >= 0f && weight <= 1f
 
     /**
      * Factory method for creating instances of the CMYK class.
@@ -26,7 +26,7 @@ trait CMYK { self: WorkingSpace =>
      * @return an instance of the CMYK class.
      */
     def getIfValid(cyan: Double, magenta: Double, yellow: Double, black: Double): Option[CMYK] = {
-      if (valid(cyan) && valid(magenta) && valid(yellow) && valid(black)) Some(apply(cyan, magenta, yellow, black))
+      if (valid0to1(cyan, magenta, yellow, black)) Some(apply(cyan, magenta, yellow, black))
       else None
     }
 
@@ -39,12 +39,12 @@ trait CMYK { self: WorkingSpace =>
       )
     )
 
-    override def fromNRGB(nrgb: NRGB): CMYK = {
-      val K = 1.0 - Math.max(nrgb.red, Math.max(nrgb.green, nrgb.blue))
+    override def fromRGB(rgb: RGB): CMYK = {
+      val K = 1.0 - Math.max(rgb.red, Math.max(rgb.green, rgb.blue))
       val kInv = 1.0 - K
-      val C = (1.0 - nrgb.red - K) / kInv
-      val M = (1.0 - nrgb.green - K) / kInv
-      val Y = (1.0 - nrgb.blue - K) / kInv
+      val C = (1.0 - rgb.red - K) / kInv
+      val M = (1.0 - rgb.green - K) / kInv
+      val Y = (1.0 - rgb.blue - K) / kInv
 
       CMYK(C, M, Y, K)
     }
@@ -80,8 +80,8 @@ trait CMYK { self: WorkingSpace =>
 
     inline def black: Double = values(3)
 
-    override def toNRGB: NRGB = NRGB(
-      ai.dragonfly.bitfrost.NRGB.clamp(
+    override def toRGB: RGB = RGB(
+      RGB.clamp0to1(
         (1.0 - cyan) * (1.0 - black),
         (1.0 - magenta) * (1.0 - black),
         (1.0 - yellow) * (1.0 - black)

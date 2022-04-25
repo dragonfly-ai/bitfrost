@@ -1,13 +1,14 @@
-package ai.dragonfly.bitfrost.colormodel
+package ai.dragonfly.bitfrost.color.model
 
-import ai.dragonfly.bitfrost.{Hue, Saturation, Value}
-import ai.dragonfly.bitfrost.colorspace.WorkingSpace
+import ai.dragonfly.bitfrost.*
+import ai.dragonfly.bitfrost.color.*
+import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 
-trait HSV { self: WorkingSpace =>
+trait HSV extends ColorModel { self: WorkingSpace =>
 
-  object HSV extends CommonColorSpace[HSV] {
+  object HSV extends CommonColorCompanion[HSV] with SaturatedHue {
 
     def apply(values: VectorValues): HSV = new HSV(dimensionCheck(values, 3))
 
@@ -40,9 +41,9 @@ trait HSV { self: WorkingSpace =>
 
     def clamp(hue: Double, saturation: Double, value: Double): HSV = new HSV(
       VectorValues(
-        hue, //Hue.clamp(hue),
-        Saturation.clamp(saturation),
-        Value.clamp(value)
+        clampHue(hue),
+        clamp0to1(saturation),
+        clamp0to1(value)
       )
     )
 
@@ -56,11 +57,11 @@ trait HSV { self: WorkingSpace =>
      * @return an instance of the HSV case class.
      */
     def getIfValid(hue: Double, saturation: Double, value: Double): Option[HSV] = {
-      if (Hue.valid(hue) && Saturation.valid(saturation) && Value.valid(saturation)) Some(apply(hue, saturation, value))
+      if (validHue(hue) && valid0to1(saturation) && valid0to1(saturation)) Some(apply(hue, saturation, value))
       else None
     }
 
-    override def fromNRGB(nrgb: NRGB): HSV = apply(Hue.toHSV(nrgb.red, nrgb.green, nrgb.blue))
+    override def fromRGB(nrgb: RGB): HSV = apply(toHSV(nrgb.red, nrgb.green, nrgb.blue))
 
     override def random(r: scala.util.Random = Random.defaultRandom): HSV = apply(
       VectorValues(
@@ -82,9 +83,9 @@ trait HSV { self: WorkingSpace =>
     inline def value: Double = values(2)
 
     // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
-    override def toNRGB: NRGB = {
+    override def toRGB: RGB = {
       val C = value * saturation
-      NRGB.apply(Hue.hcxmToNRGBvalues(hue, C, Hue.XfromHueC(hue, C), value - C))
+      RGB.apply(HSV.hcxmToRGBvalues(hue, C, HSV.XfromHueC(hue, C), value - C))
     }
 
     override def copy(): VEC = new HSV(VectorValues(hue, saturation, value)).asInstanceOf[VEC]

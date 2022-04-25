@@ -1,13 +1,14 @@
-package ai.dragonfly.bitfrost.colormodel
+package ai.dragonfly.bitfrost.color.model
 
-import ai.dragonfly.bitfrost.{Degree, Hue, Lightness, Saturation}
-import ai.dragonfly.bitfrost.colorspace.WorkingSpace
+import ai.dragonfly.bitfrost.*
+import ai.dragonfly.bitfrost.color.*
+import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 
-trait HSL { self: WorkingSpace =>
+trait HSL extends ColorModel { self: WorkingSpace =>
 
-  object HSL extends CommonColorSpace[HSL] {
+  object HSL extends CommonColorCompanion[HSL] with SaturatedHue {
 
     def apply(values: VectorValues): HSL = new HSL(dimensionCheck(values, 3))
 
@@ -38,13 +39,13 @@ trait HSL { self: WorkingSpace =>
 
     def clamp(hue: Double, saturation: Double, lightness: Double): HSL = new HSL(
       VectorValues(
-        hue, //Hue.clamp(hue),
-        Saturation.clamp(saturation),
-        Lightness.clamp(lightness)
+        clampHue(hue),
+        clamp0to1(saturation),
+        clamp0to1(lightness)
       )
     )
 
-    override def fromNRGB(nrgb: NRGB): HSL = apply(Hue.toHSL(nrgb.red, nrgb.green, nrgb.blue))
+    override def fromRGB(nrgb: RGB): HSL = apply(toHSL(nrgb.red, nrgb.green, nrgb.blue))
 
     /**
      * Factory method for creating instances of the HSL class.  This method validates input parameters and throws an exception
@@ -56,7 +57,7 @@ trait HSL { self: WorkingSpace =>
      * @return an instance of the HSL case class.
      */
     def getIfValid(hue: Double, saturation: Double, lightness: Double): Option[HSL] = {
-      if (Degree.valid(hue) && Saturation.valid(saturation) && Lightness.valid(lightness)) Some(apply(hue, saturation, lightness))
+      if (validHue(hue) && valid0to1(saturation) && valid0to1(lightness)) Some(apply(hue, saturation, lightness))
       else None
     }
 
@@ -81,14 +82,14 @@ trait HSL { self: WorkingSpace =>
 
     override def copy(): VEC = new HSL(VectorValues(hue, saturation, lightness)).asInstanceOf[VEC]
 
-    override def toNRGB: NRGB = {
+    override def toRGB: RGB = {
       // https://www.rapidtables.com/convert/color/hsl-to-rgb.html
       val C = (1.0 - Math.abs((2*lightness) - 1.0)) * saturation
-      NRGB.apply(
-        Hue.hcxmToNRGBvalues(
+      RGB.apply(
+        HSL.hcxmToRGBvalues(
           hue,
           C,
-          Hue.XfromHueC(hue, C), // X
+          HSL.XfromHueC(hue, C), // X
           lightness - (0.5 * C) // m
         )
       )

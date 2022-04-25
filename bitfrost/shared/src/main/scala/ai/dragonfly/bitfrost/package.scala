@@ -1,25 +1,38 @@
 package ai.dragonfly
 
 import Jama.Matrix
+import ai.dragonfly.bitfrost.color.model.ProvidedColorModels
 import ai.dragonfly.math
 import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.matrix.*
 import ai.dragonfly.math.matrix.MatrixValues
 import ai.dragonfly.math.squareInPlace
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
-import ai.dragonfly.bitfrost.colormodel.*
 
 package object bitfrost {
 
   type XYZ = Vector3
 
-  object Degree {
-    inline def valid(angle: Double): Boolean = angle >= 0f && angle <= 360.0
-    inline def clamp(angle: Double): Double = ((angle % 360.0d) + 360.0d) % 360.0d  // Aly Cerruti's angle santization function from nose
+  trait NormalizedValue {
+
+    inline def valid0to1(percentage: Double): Boolean = percentage >= 0.0 && percentage <= 1.0
+    inline def valid0to1(i0: Double, i1: Double):Boolean = valid0to1(i0) && valid0to1(i1)
+    inline def valid0to1(i0: Double, i1: Double, i2: Double):Boolean = valid0to1(i0) && valid0to1(i1) && valid0to1(i2)
+    inline def valid0to1(i0: Double, i1: Double, i2: Double, i3: Double):Boolean = valid0to1(i0) && valid0to1(i1) && valid0to1(i2) && valid0to1(i3)
+
+    inline def clamp0to1(percentage: Double): Double = Math.min(1.0, Math.max(0.0, percentage))
+    inline def clamp0to1(v1: Double, v2: Double, v3: Double):VectorValues = {
+      VectorValues(clamp0to1(v1), clamp0to1(v2), clamp0to1(v3))
+    }
+    inline def clamp0to1(v1: Double, v2: Double, v3: Double, v4: Double):VectorValues = {
+      VectorValues(clamp0to1(v1), clamp0to1(v2), clamp0to1(v3), clamp0to1(v4))
+    }
   }
 
-  object Hue {
-    export Degree.*
+  trait SaturatedHue extends NormalizedValue {
+
+    inline def validHue(angle: Double): Boolean = angle >= 0f && angle <= 360.0
+    inline def clampHue(angle: Double): Double = ((angle % 360.0d) + 360.0d) % 360.0d  // Aly Cerruti's angle santization function from nose
 
     inline def hueMinMax(red: Double, green: Double, blue: Double): VectorValues = {
       // hue extractor based on a scala implementation in project nose: https://gitlab.com/srnb/nose/-/blob/master/nose/src/main/scala/tf/bug/nose/space/rgb/StandardRGB.scala
@@ -29,7 +42,7 @@ package object bitfrost {
       val MAX: Double = Math.max(red, Math.max(green, blue))
 
       VectorValues(
-        clamp(
+        clampHue(
           MAX match {
             case `min` => 0.0
             case `red` => 60.0 * ((green - blue) / (MAX - min))
@@ -62,62 +75,25 @@ package object bitfrost {
       values
     }
 
-    inline def hcxmToNRGBvalues(hue: Double, c: Double, x: Double, m: Double): VectorValues = {
+    inline def hcxmToRGBvalues(hue: Double, c: Double, x: Double, m: Double): VectorValues = {
       val X = x + m
       val C = c + m
 
-      // rotate/clamp hue between 0 and 360
-      val h = hue //clamp(hue)
-
-      if (h < 60.0) NRGB.clamp(C, X, m) // hue = 360 clamps to 0
-      else if (h < 120.0) NRGB.clamp(X, C, m)
-      else if (h < 180.0) NRGB.clamp(m, C, X)
-      else if (h < 240.0) NRGB.clamp(m, X, C)
-      else if (h < 300.0) NRGB.clamp(X, m, C)
-      else NRGB.clamp(C, m, X)
+      if (hue < 60.0) clamp0to1(C, X, m) // hue = 360 clamps to 0
+      else if (hue < 120.0) clamp0to1(X, C, m)
+      else if (hue < 180.0) clamp0to1(m, C, X)
+      else if (hue < 240.0) clamp0to1(m, X, C)
+      else if (hue < 300.0) clamp0to1(X, m, C)
+      else clamp0to1(C, m, X)
     }
 
     inline def XfromHueC(H: Double, C: Double): Double = C * (1.0 - Math.abs(((H / 60.0) % 2.0) - 1.0))
 
   }
 
-  object Intensity {
-    inline def valid(percentage: Double): Boolean = percentage >= 0.0 && percentage <= 1.0
-    inline def clamp(percentage: Double): Double = Math.min(1.0, Math.max(0.0, percentage))
-  }
-
-  val Saturation:Intensity.type = Intensity
-
-  val Value:Intensity.type = Intensity
-
-  val Lightness:Intensity.type = Intensity
-
-  object RGB {
-    inline def valid(intensity: Int): Boolean = intensity >= 0 && intensity < 256
-    inline def valid(i0: Int, i1: Int, i2: Int):Boolean = valid(i0) && valid(i1) && valid(i2)
-    inline def valid(i0: Int, i1: Int, i2: Int, i3: Int):Boolean = valid(i0) && valid(i1) && valid(i2) && valid(i3)
-
-    inline def clamp(intensity:Double):Int = Math.round(Math.max(0.0, Math.min(255.0, intensity))).toInt
-    inline def clamp(red: Double, green: Double, blue: Double):Int = clamp(255.0, red, green, blue)
-    inline def clamp(alpha:Double, red: Double, green: Double, blue: Double):Int = {
-      (clamp(alpha)<<24)|(clamp(red)<<16)|(clamp(green)<<8)|clamp(blue)
-    }
-  }
-
-  object NRGB {
-    inline def valid(i: Double): Boolean = Intensity.valid(i)
-    inline def valid(i0: Double, i1: Double, i2: Double):Boolean = valid(i0) && valid(i1) && valid(i2)
-
-    inline def clamp(i:Double):Double = Intensity.clamp(i)
-    inline def clamp(red: Double, green: Double, blue: Double):VectorValues = {
-      VectorValues(clamp(red), clamp(green), clamp(blue))
-    }
-  }
-
-
   object context {
 
-    import ai.dragonfly.bitfrost.colorspace.*
+    import ai.dragonfly.bitfrost.cie.*
     import Illuminant.*
 
     val knownContexts:Array[WorkingSpace with ProvidedColorModels] = Array[WorkingSpace with ProvidedColorModels](
@@ -128,7 +104,7 @@ package object bitfrost {
     //Adobe RGB (1998)
     // specification: https://www.adobe.com/digitalimag/pdfs/AdobeRGB1998.pdf
     object Adobe_RGB_1998 extends ProvidedColorModels {
-      override val compander:Compander = Gamma(2.19921875)
+      override val transferFunction:TransferFunction = Gamma(2.19921875)
 
       override val primaries:ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.64, 0.33, 0.297361 ),
@@ -146,7 +122,7 @@ package object bitfrost {
     }
     // Apple RGB
     object Apple_RGB extends ProvidedColorModels {
-      override val compander:Compander = Gamma(1.8)
+      override val transferFunction:TransferFunction = Gamma(1.8)
 
       override val primaries:ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.625, 0.34, 0.244634 ),
@@ -164,7 +140,7 @@ package object bitfrost {
     }
     // Best RGB
     object Best_RGB extends ProvidedColorModels {
-      override val compander: Compander = Gamma(2.2)
+      override val transferFunction: TransferFunction = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.7347, 0.2653, 0.228457),
@@ -182,7 +158,7 @@ package object bitfrost {
     }
 
     object Beta_RGB extends ProvidedColorModels {
-      override val compander: Compander = Gamma(2.2)
+      override val transferFunction: TransferFunction = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.6888, 0.3112, 0.303273),
@@ -200,7 +176,7 @@ package object bitfrost {
     }
 
     object Bruce_RGB extends ProvidedColorModels {
-      override val compander: Compander = Gamma(2.2)
+      override val transferFunction: TransferFunction = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.64, 0.33, 0.240995),
@@ -218,7 +194,7 @@ package object bitfrost {
     }
 
     object CIE_RGB extends ProvidedColorModels {
-      override val compander: Compander = Gamma(2.2)
+      override val transferFunction: TransferFunction = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.735, 0.265, 0.176204),
@@ -236,7 +212,7 @@ package object bitfrost {
     }
 
     object ColorMatch_RGB extends ProvidedColorModels {
-      override val compander: Compander = Gamma(1.8)
+      override val transferFunction: TransferFunction = Gamma(1.8)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.63, 0.34, 0.274884),
@@ -254,7 +230,7 @@ package object bitfrost {
     }
 
     object Don_RGB_4 extends ProvidedColorModels {
-      override val compander: Compander = Gamma(2.2)
+      override val transferFunction: TransferFunction = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.696, 0.3, 0.27835),
@@ -272,7 +248,7 @@ package object bitfrost {
     }
 
     object ECI_RGB_v2 extends ProvidedColorModels {
-      override val compander: Compander = Lstar
+      override val transferFunction: TransferFunction = Lstar
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.67, 0.33, 0.32025),
@@ -290,7 +266,7 @@ package object bitfrost {
     }
 
     object Ekta_Space_PS5 extends ProvidedColorModels {
-      override val compander: Compander = Gamma(2.2)
+      override val transferFunction: TransferFunction = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.695, 0.305, 0.260629),
@@ -308,7 +284,7 @@ package object bitfrost {
     }
 
     object NTSC_RGB extends ProvidedColorModels {
-      override val compander: Compander = Gamma(2.2)
+      override val transferFunction: TransferFunction = Gamma(2.2)
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.67, 0.33, 0.298839),
         ChromaticityPrimary( 0.21, 0.71, 0.586811),
@@ -326,7 +302,7 @@ package object bitfrost {
 
     // PAL/SECAM RGB
     object PAL_RGB extends ProvidedColorModels {
-      override val compander: Compander = Gamma(2.2)
+      override val transferFunction: TransferFunction = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.64, 0.33, 0.222021),
@@ -346,7 +322,7 @@ package object bitfrost {
     val SECAM_RGB = PAL_RGB
 
     object ProPhoto_RGB extends ProvidedColorModels {
-      override val compander: Compander = Gamma(1.8)
+      override val transferFunction: TransferFunction = Gamma(1.8)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.7347, 0.2653, 0.28804),
@@ -365,7 +341,7 @@ package object bitfrost {
 
     // SMPTE-C RGB
     object SMPTE_Minus_C_RGB extends ProvidedColorModels {
-      override val compander: Compander = Gamma(2.2)
+      override val transferFunction: TransferFunction = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.63, 0.34, 0.212395),
@@ -383,7 +359,7 @@ package object bitfrost {
     }
 
     object sRGB extends ProvidedColorModels {
-      override val compander: Compander = SRGB // ~2.2 ?
+      override val transferFunction: TransferFunction = sRGB_ICC_V4 // ~2.2 ?
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.64, 0.33, 0.212656),
@@ -401,7 +377,7 @@ package object bitfrost {
     }
 
     object Wide_Gamut_RGB extends ProvidedColorModels {
-      override val compander: Compander = Gamma(2.2)
+      override val transferFunction: TransferFunction = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.735, 0.265, 0.258187),
@@ -425,7 +401,7 @@ package object bitfrost {
         ChromaticityPrimary( 0.2650, 0.6900, Double.NaN),
         ChromaticityPrimary( 0.1500, 0.0600, Double.NaN)
       )
-      override val compander: Compander = SRGB
+      override val transferFunction: TransferFunction = sRGB_ICC_V4
 
       override val illuminant: Illuminant = D65
 

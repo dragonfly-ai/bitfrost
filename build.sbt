@@ -10,7 +10,7 @@ lazy val bitfrost = crossProject(JSPlatform, JVMPlatform).settings(
   resolvers += "dragonfly.ai" at "https://code.dragonfly.ai/",
   libraryDependencies += "ai.dragonfly.code" %%% "matrix" % "0.331.523",
   scalacOptions ++= Seq("-feature", "-deprecation"),
-  Compile / mainClass := Some("ai.dragonfly.bitfrost.ConversionFidelity"),
+  Compile / mainClass := Some("ai.dragonfly.bitfrost.verification.ConversionFidelity"),
   scalaJSUseMainModuleInitializer := true
 ).jsSettings().jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin)).jvmSettings()
 
