@@ -38,8 +38,8 @@ trait Lab extends ColorModel { self: WorkingSpace =>
 
       apply(
         116.0 * fy - 16.0,
-        500.0 * (f(illuminant.`1/xₙ` * xyz.x) - fy),
-        200.0 * (fy - f(illuminant.`1/zₙ` * xyz.z)),
+        500.0 * ( f( illuminant.`1/xₙ` * xyz.x ) - fy),
+        200.0 * ( fy - f( illuminant.`1/zₙ` * xyz.z ) )
       )
     }
   }

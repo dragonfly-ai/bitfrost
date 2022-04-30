@@ -7,4 +7,6 @@ import ai.dragonfly.bitfrost.color.model.rgb.RGB
 
 type ColorSpace[CM <: ColorModel, WS <: WorkingSpace] = CM with WS
 
-type sRGB = ColorSpace[RGB, ai.dragonfly.bitfrost.context.sRGB.type] // = ai.dragonfly.bitfrost.context.sRGB.RGB.type
+type sRGB = ColorSpace[RGB, ai.dragonfly.bitfrost.context.sRGB.type]
+
+
