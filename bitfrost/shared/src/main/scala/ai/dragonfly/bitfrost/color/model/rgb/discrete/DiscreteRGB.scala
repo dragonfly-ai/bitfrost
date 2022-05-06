@@ -1,15 +1,29 @@
 package ai.dragonfly.bitfrost.color.model.rgb.discrete
 
 import ai.dragonfly.bitfrost.*
+import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.*
+import ai.dragonfly.bitfrost.color.space.*
+import ai.dragonfly.bitfrost.color.model.*
+import ai.dragonfly.math.squareInPlace
 
-trait DiscreteRGB[C <: DiscreteRGB[C]] extends DiscreteColor[C]
+trait DiscreteRGB[C <: DiscreteRGB[C]] extends DiscreteColorModel[C] {
+  def red:Int
+  def green:Int
+  def blue:Int
+}
 
 
-trait UtilDiscreteRGB[C <: DiscreteRGB[C]] extends DiscreteColorModelCompanion[C] {
+trait UtilDiscreteRGB[C <: DiscreteRGB[C], WS <: WorkingSpace] extends DiscreteColorSpace[C, WS] {
   val min:Int
   val MAX:Int
   val MAXD:Double
+
+  override val maxDistanceSquared: Double = 3 * ai.dragonfly.math.squareInPlace(MAXD)
+
+  override def similarity(c1: C, c2: C): Double = {
+    (squareInPlace(c1.red - c2.red) + squareInPlace(c1.green - c2.green) + squareInPlace(c1.blue - c2.blue) ) / maxDistanceSquared
+  }
 
   inline def valid(intensity: Int): Boolean = intensity >= min && intensity <= MAX
   inline def valid(i0: Int, i1: Int, i2: Int):Boolean = valid(i0) && valid(i1) && valid(i2)
@@ -38,7 +52,7 @@ trait UtilDiscreteRGB[C <: DiscreteRGB[C]] extends DiscreteColorModelCompanion[C
 
 
 
-trait UtilRGB32[C <: DiscreteRGB[C]] extends UtilDiscreteRGB[C] {
+trait UtilRGB32[C <: DiscreteRGB[C], WS <: WorkingSpace] extends UtilDiscreteRGB[C, WS] {
   override val min:Int = 0
   override val MAX:Int = 255
   override val MAXD:Double = 255.0
@@ -53,7 +67,7 @@ trait UtilRGB32[C <: DiscreteRGB[C]] extends UtilDiscreteRGB[C] {
 }
 
 
-trait UtilDiscreteRGB64[C <: DiscreteRGB[C]] extends UtilDiscreteRGB[C] {
+trait UtilDiscreteRGB64[C <: DiscreteRGB[C], WS <: WorkingSpace] extends UtilDiscreteRGB[C, WS] {
   override val min:Int = 0
   override val MAX:Int = 65535
   override val MAXD:Double = 65535.0

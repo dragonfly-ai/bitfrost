@@ -1,21 +1,23 @@
-package ai.dragonfly.bitfrost.color.model
+package ai.dragonfly.bitfrost.color.model.huesat
 
 import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.color.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
+import ai.dragonfly.bitfrost.color.model.{CylindricalColorModel, VectorColorModel}
+import ai.dragonfly.bitfrost.color.space.{CylindricalColorSpace, VectorColorSpace}
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 
-trait HSV extends ColorModel { self: WorkingSpace =>
+trait HSV extends ColorContext {
+  self: WorkingSpace =>
 
-  object HSV extends CommonColorCompanion[HSV] with SaturatedHue {
+  object HSV extends HueSaturationSpace[HSV, self.type] {
 
     def apply(values: VectorValues): HSV = new HSV(dimensionCheck(values, 3))
 
 
     def clamp(values: VectorValues): HSV = {
       dimensionCheck(values, 3)
-      clamp( values(0), values(1), values(2) )
+      clamp(values(0), values(1), values(2))
     }
 
     /**
@@ -61,7 +63,17 @@ trait HSV extends ColorModel { self: WorkingSpace =>
       else None
     }
 
-    override def fromRGB(nrgb: RGB): HSV = apply(toHSV(nrgb.red, nrgb.green, nrgb.blue))
+    def fromRGB(nrgb: RGB): HSV = apply(toHSV(nrgb.red, nrgb.green, nrgb.blue))
+
+
+    inline def toHSV(red: Double, green: Double, blue: Double): VectorValues = {
+      val values: VectorValues = hueMinMax(red, green, blue)
+      values(1) = {  // S
+        if (values(2 /*MAX*/) == 0.0) 0.0
+        else (values(2 /*MAX*/) - values(1 /*min*/)) / values(2 /*MAX*/)
+      }
+      values
+    }
 
     override def random(r: scala.util.Random = Random.defaultRandom): HSV = apply(
       VectorValues(
@@ -73,8 +85,7 @@ trait HSV extends ColorModel { self: WorkingSpace =>
 
   }
 
-  case class HSV private(override val values: VectorValues) extends CommonColor[HSV] {
-    override type VEC = this.type with HSV
+  case class HSV private(override val values: VectorValues) extends HueSaturationModel[HSV] {
 
     inline def hue: Double = values(0)
 
@@ -83,12 +94,14 @@ trait HSV extends ColorModel { self: WorkingSpace =>
     inline def value: Double = values(2)
 
     // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
-    override def toRGB: RGB = {
+    def toRGB: RGB = {
       val C = value * saturation
       RGB.apply(HSV.hcxmToRGBvalues(hue, C, HSV.XfromHueC(hue, C), value - C))
     }
 
-    override def copy(): VEC = new HSV(VectorValues(hue, saturation, value)).asInstanceOf[VEC]
+    def copy(): HSV = new HSV(VectorValues(hue, saturation, value))
+
+    override def similarity(that: HSV): Double = HSV.similarity(this, that)
 
     override val toString: String = s"HSV($hue, $saturation, $value)"
   }

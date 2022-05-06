@@ -1,8 +1,10 @@
 package ai.dragonfly.bitfrost.color.model.rgb
 
 import Jama.Matrix
+import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.color.model.ColorModel
+import ai.dragonfly.bitfrost.color.model.*
+import ai.dragonfly.bitfrost.color.space.*
 import ai.dragonfly.bitfrost.{NormalizedValue, XYZ}
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.matrix.MatrixValues
@@ -11,11 +13,13 @@ import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
 
 import scala.language.implicitConversions
 
-trait RGB extends ColorModel {
+trait RGB extends ColorContext {
   self: WorkingSpace =>
 
-  object RGB extends CommonColorCompanion[RGB] with NormalizedValue {
+  object RGB extends VectorColorSpace[RGB, self.type] with NormalizedValue {
     val `1/255`: Double = 1.0 / 255.0
+
+    override val maxDistanceSquared: Double = 3.0
 
     def apply(values: VectorValues): RGB = new RGB(dimensionCheck(values, 3))
 
@@ -71,10 +75,9 @@ trait RGB extends ColorModel {
       VectorValues(r.nextDouble(), r.nextDouble(), r.nextDouble())
     )
 
-    override def fromRGB(nrgb: RGB): RGB = nrgb.copy()
   }
 
-  case class RGB private(override val values: VectorValues) extends CommonColor[RGB] {
+  case class RGB private(override val values: VectorValues) extends VectorColorModel[RGB] {
     override type VEC = this.type with RGB
 
     inline def red: Double = values(0)

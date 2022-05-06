@@ -8,9 +8,13 @@ import matrix.util.*
 import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
 import ai.dragonfly.math.matrix.util.asColumnMatrix
 import ai.dragonfly.bitfrost.*
+import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.bitfrost.color.model.rgb.discrete.{ARGB32, RGBA32}
 import ai.dragonfly.bitfrost.color.model.rgb.RGB
-import ai.dragonfly.bitfrost.color.{VectorColor, VectorColorModelCompanion}
+import ai.dragonfly.bitfrost.color.space.*
+import ai.dragonfly.math.stats.geometry.Tetrahedron
+
+import scala.collection.mutable
 
 
 trait WorkingSpace extends ARGB32 with RGBA32 with RGB {
@@ -22,16 +26,5 @@ trait WorkingSpace extends ARGB32 with RGBA32 with RGB {
   lazy val M: Matrix = primaries.getM(illuminant)
 
   lazy val M_inverse: Matrix = M.inverse()
-
-  import ai.dragonfly.bitfrost
-
-  trait CommonColor[C <: CommonColor[C]] extends VectorColor[C] {
-    def toRGB: RGB
-  }
-
-  trait CommonColorCompanion[C <: CommonColor[C]] extends VectorColorModelCompanion[C] {
-    //  def fromARGB(argb: ARGB):C
-    def fromRGB(nrgb: RGB): C
-  }
 
 }

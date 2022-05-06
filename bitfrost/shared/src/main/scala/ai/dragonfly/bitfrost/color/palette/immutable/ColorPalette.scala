@@ -3,7 +3,7 @@ package ai.dragonfly.bitfrost.palette.immutable
 import ai.dragonfly.math.matrix.*
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.color.Color
+import ai.dragonfly.bitfrost.color.model.ColorModel
 import ai.dragonfly.math.Euclidean
 
 import scala.collection.*
@@ -16,7 +16,7 @@ object ColorPalette {
     * @return an instance of the ColorPalette class.
     * @example {{{ val cp = ColorPalette(histogram) }}}
     */
-  def apply[C <: Color[C]](hist: Map[C, Int]): ColorPalette[C] = {
+  def apply[C <: ColorModel[C]](hist: Map[C, Int]): ColorPalette[C] = {
     // Normalize
     val frequencyTotal: Double = hist.values.sum
     new ColorPalette[C](
@@ -36,7 +36,7 @@ object ColorPalette {
   * @param colorFrequencies an array of ColorFrequency objects.
   */
 
-class ColorPalette[C <: Color[C]](val colorFrequencies: Array[ColorFrequency[C]]) {
+class ColorPalette[C <: ColorModel[C]](val colorFrequencies: Array[ColorFrequency[C]]) {
   /**
     * Search the palette for the closest match to a query color.
     *
@@ -78,7 +78,7 @@ class ColorPalette[C <: Color[C]](val colorFrequencies: Array[ColorFrequency[C]]
   * @return an instance of the ColorFrequency class.
   */
 
-case class ColorFrequency[C <: Color[C]](color: C, frequency: Double) {
+case class ColorFrequency[C <: ColorModel[C]](color: C, frequency: Double) {
 
 //
 //  /**

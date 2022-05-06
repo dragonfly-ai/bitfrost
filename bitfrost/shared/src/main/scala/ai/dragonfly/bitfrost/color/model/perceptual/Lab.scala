@@ -1,19 +1,19 @@
-package ai.dragonfly.bitfrost.color.model
+package ai.dragonfly.bitfrost.color.model.perceptual
 
-import ai.dragonfly.bitfrost.*
+import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
-import ai.dragonfly.bitfrost.color.*
+import ai.dragonfly.bitfrost.color.model.PerceptualColorModel
+import ai.dragonfly.bitfrost.color.space.PerceptualColorSpace
+import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
 import ai.dragonfly.math.{Random, cubeInPlace}
 
-import scala.language.{implicitConversions, postfixOps}
+trait Lab extends ColorContext {
+  self: WorkingSpace =>
 
-trait Lab extends ColorModel { self: WorkingSpace =>
+  object Lab extends PerceptualColorSpace[Lab, self.type] {
 
-  object Lab extends PerceptualColorCompanion[Lab] {
     def apply(values: VectorValues): Lab = new Lab(dimensionCheck(values, 3))
-
-    override def random(r: scala.util.Random = Random.defaultRandom): Lab = ???
 
     /**
      * @param L the L* component of the CIE L*a*b* color.
@@ -23,6 +23,8 @@ trait Lab extends ColorModel { self: WorkingSpace =>
      * @example {{{ val c = LAB(72.872, -0.531, 71.770) }}}
      */
     def apply(L: Double, a: Double, b: Double): Lab = apply(VectorValues(L, a, b))
+
+    override val maxDistanceSquared: Double = 10000
 
     inline def f(t: Double): Double = if (t > ϵ) Math.cbrt(t) else (t * `k/116`) + `16/116`
 
@@ -38,13 +40,15 @@ trait Lab extends ColorModel { self: WorkingSpace =>
 
       apply(
         116.0 * fy - 16.0,
-        500.0 * ( f( illuminant.`1/xₙ` * xyz.x ) - fy),
-        200.0 * ( fy - f( illuminant.`1/zₙ` * xyz.z ) )
+        500.0 * (f(illuminant.`1/xₙ` * xyz.x) - fy),
+        200.0 * (fy - f(illuminant.`1/zₙ` * xyz.z))
       )
     }
   }
 
-  case class Lab private(override val values: VectorValues) extends PerceptualColor[Lab] {
+  private def _toRGB(lab: Lab):RGB = XYZ.toRGB(this)(lab.toXYZ)
+
+  case class Lab private(override val values: VectorValues) extends PerceptualColorModel[Lab] {
     override type VEC = this.type with Lab
 
     override def copy(): VEC = new Lab(VectorValues(L, a, b)).asInstanceOf[VEC]
@@ -64,11 +68,14 @@ trait Lab extends ColorModel { self: WorkingSpace =>
       Vector3(
         fInverse((0.002 * a) + fy) * white.x, // X
         (if (L > kϵ) {
-          val l = L + 16.0; `1/116³` * (l * l * l)
+          val l = L + 16.0;
+          `1/116³` * (l * l * l)
         } else `1/k` * L) * white.y, // Y
         fInverse(fy - (0.005 * b)) * white.z, // X
       )
     }
+
+    override def toRGB:RGB = _toRGB(this)
 
     override def toString: String = s"L*a*b*($L,$a,$b)"
   }

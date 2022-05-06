@@ -1,13 +1,14 @@
 package ai.dragonfly.bitfrost.color.model.rgb.discrete
 
+import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.color.model.ColorModel
-import ai.dragonfly.bitfrost.color.{DiscreteColor, DiscreteColorModelCompanion}
+import ai.dragonfly.bitfrost.color.model.*
+import ai.dragonfly.bitfrost.color.space.*
 import ai.dragonfly.math.{Random, squareInPlace}
 
 import scala.language.implicitConversions
 
-trait RGBA32 extends ColorModel {
+trait RGBA32 extends ColorContext {
   self: WorkingSpace =>
 
   given Conversion[java.awt.Color, RGBA32] with
@@ -22,7 +23,7 @@ trait RGBA32 extends ColorModel {
   given Conversion[RGBA32, Int] with
     def apply(c: RGBA32): Int = c.rgba
 
-  object RGBA32 extends DiscreteColorModelCompanion[RGBA32] with UtilRGB32[RGBA32] {
+  object RGBA32 extends UtilRGB32[RGBA32, self.type] {
     def apply(rgba: Int): RGBA32 = new RGBA32(rgba)
 
     /**

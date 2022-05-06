@@ -1,13 +1,14 @@
 package ai.dragonfly.bitfrost.color.model.rgb.discrete
 
+import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.color.model.ColorModel
-import ai.dragonfly.bitfrost.color.{DiscreteColor, DiscreteColorModelCompanion}
+import ai.dragonfly.bitfrost.color.model.*
+import ai.dragonfly.bitfrost.color.space.*
 import ai.dragonfly.math.{Random, squareInPlace}
 
 import scala.language.implicitConversions
 
-trait ARGB64 extends ColorModel {
+trait ARGB64 extends ColorContext {
   self: WorkingSpace =>
 
   given Conversion[Long, ARGB64] with
@@ -16,7 +17,7 @@ trait ARGB64 extends ColorModel {
   given Conversion[ARGB64, Long] with
     def apply(c: ARGB64): Long = c.argb
 
-  object ARGB64 extends UtilDiscreteRGB64[ARGB64] {
+  object ARGB64 extends UtilDiscreteRGB64[ARGB64, self.type] {
     def apply(argb: Long): ARGB64 = new ARGB64(argb)
 
     /**

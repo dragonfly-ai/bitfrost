@@ -1,40 +1,45 @@
-package ai.dragonfly.bitfrost.color.model
+package ai.dragonfly.bitfrost.color.model.perceptual
 
-import ai.dragonfly.bitfrost.*
+import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
-import ai.dragonfly.bitfrost.color.*
-import ai.dragonfly.math.{Random, cubeInPlace}
+import ai.dragonfly.bitfrost.color.model.PerceptualColorModel
+import ai.dragonfly.bitfrost.color.space.PerceptualColorSpace
+import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.vector.{Vector2, Vector3, VectorValues, dimensionCheck}
+import ai.dragonfly.math.{Random, cubeInPlace}
 
-import scala.language.{implicitConversions, postfixOps}
-
-trait Luv extends ColorModel { self: WorkingSpace =>
+trait Luv extends ColorContext {
+  self: WorkingSpace =>
 
   object UV {
 
-    private inline def getWeight(xyz:XYZ):Double = 1.0 / (xyz.x + xyz.y + xyz.z)
+    private inline def getWeight(xyz: XYZ): Double = 1.0 / (xyz.x + xyz.y + xyz.z)
 
-    def fromXYZ(xyz:XYZ):UV = {
-      var w:Double = getWeight(xyz)
-      val x:Double = w * xyz.x
-      val y:Double = w * xyz.y
+    def fromXYZ(xyz: XYZ): UV = {
+
+      var w: Double = getWeight(xyz)
+
+      val x: Double = w * xyz.x
+      val y: Double = w * xyz.y
       w = 1.0 / (6.0 * y - x + 1.5)
+      if (w.isNaN) UV(0.0, 0.0)
       UV(2.0 * x * w, 4.5 * y * w)
+
     }
 
   }
 
-  case class UV(u:Double, v:Double) {
-    def xy:Vector2 = {
-      val denominator:Double = (6.0 * u) - (16.0 * v) + 12
+  case class UV(u: Double, v: Double) {
+    def xy: Vector2 = {
+      val denominator: Double = (6.0 * u) - (16.0 * v) + 12
       Vector2(
         (9.0 * u) / denominator, // X
-        (9.0 * v) / denominator  // y
+        (9.0 * v) / denominator // y
       )
     }
   }
 
-  object Luv extends PerceptualColorCompanion[Luv] {
+  object Luv extends PerceptualColorSpace[Luv, self.type] {
 
     def apply(values: VectorValues): Luv = new Luv(dimensionCheck(values, 3))
 
@@ -49,31 +54,35 @@ trait Luv extends ColorModel { self: WorkingSpace =>
 
     def apply(L: Double, u: Double, v: Double): Luv = apply(VectorValues(L, u, v))
 
-    override def random(r: scala.util.Random = Random.defaultRandom): Luv = ???
+    override val maxDistanceSquared: Double = 10000
 
     // XYZ to LUV and helpers:
 
-    val UV(uₙ:Double, vₙ:Double) = UV.fromXYZ(illuminant.vector)
+    val UV(uₙ: Double, vₙ: Double) = UV.fromXYZ(illuminant.vector)
 
     inline def fL(t: Double): Double = if (t > ϵ) 116.0 * Math.cbrt(t) - 16.0 else k * t
 
     def fromXYZ(xyz: Vector3): Luv = {
 
-      val `Y/Yₙ`:Double = xyz.y / illuminant.vector.y
+      val `Y/Yₙ`: Double = xyz.y / illuminant.vector.y
 
       val `L⭑` = fL(`Y/Yₙ`)
 
-      val uv:UV = UV.fromXYZ(xyz)
+      val uv: UV = UV.fromXYZ(xyz)
+
+      val `u⭑`:Double = 13.0 * `L⭑` * (uv.u - uₙ)
+      val `v⭑`:Double = 13.0 * `L⭑` * (uv.v - vₙ)
 
       apply(
         `L⭑`,
-        13.0 * `L⭑` * (uv.u - uₙ),
-        13.0 * `L⭑` * (uv.v - vₙ)
+        if (`u⭑`.isNaN) 0.0 else `u⭑`,
+        if (`v⭑`.isNaN) 0.0 else `v⭑`
       )
     }
 
   }
 
+  private def _toRGB(luv: Luv):RGB = XYZ.toRGB(this)(luv.toXYZ)
 
   /**
    * LUV is the base trait for classes that encode colors in the CIE L*u*v* color space.
@@ -81,7 +90,7 @@ trait Luv extends ColorModel { self: WorkingSpace =>
    * @see [[https://en.wikipedia.org/wiki/CIELUV]] for more information on CIE L*u*v*.
    */
 
-  case class Luv private(override val values: VectorValues) extends PerceptualColor[Luv] {
+  case class Luv private(override val values: VectorValues) extends PerceptualColorModel[Luv] {
     override type VEC = this.type with Luv
 
     inline def L: Double = values(0)
@@ -111,6 +120,7 @@ trait Luv extends ColorModel { self: WorkingSpace =>
       Vector3(X, Y, Z)
     }
 
+    override def toRGB:RGB = _toRGB(this)
   }
 
 }

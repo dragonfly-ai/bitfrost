@@ -1,10 +1,10 @@
 package ai.dragonfly.bitfrost.verification
 
 import ai.dragonfly.bitfrost.cie.XYZ
-import ai.dragonfly.bitfrost.context
+import ai.dragonfly.bitfrost.ColorContext
 
 object ConversionFidelity extends App {
-  for (ctx <- context.knownContexts.take(1)) {
+  for (ctx <- ColorContext.knownContexts.take(1)) {
     import ctx.*
 
     var `error(ARGB32<->RGB)`: Double = 0.0

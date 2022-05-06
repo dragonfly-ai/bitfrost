@@ -1,7 +1,7 @@
 
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.context.Adobe_RGB_1998
+import ai.dragonfly.bitfrost.ColorContext.Adobe_RGB_1998
 import ai.dragonfly.math.Random.defaultRandom
 
 import scala.collection.mutable

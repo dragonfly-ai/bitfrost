@@ -1,20 +1,22 @@
-package ai.dragonfly.bitfrost.color.model
+package ai.dragonfly.bitfrost.color.model.huesat
 
 import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.color.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
+import ai.dragonfly.bitfrost.color.model.{CylindricalColorModel, VectorColorModel}
+import ai.dragonfly.bitfrost.color.space.{CylindricalColorSpace, VectorColorSpace}
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 
-trait HSL extends ColorModel { self: WorkingSpace =>
+trait HSL extends ColorContext {
+  self: WorkingSpace =>
 
-  object HSL extends CommonColorCompanion[HSL] with SaturatedHue {
+  object HSL extends HueSaturationSpace[HSL, self.type] {
 
     def apply(values: VectorValues): HSL = new HSL(dimensionCheck(values, 3))
 
     def clamp(values: VectorValues): HSL = {
       dimensionCheck(values, 3)
-      clamp( values(0), values(1), values(2) )
+      clamp(values(0), values(1), values(2))
     }
 
     /**
@@ -45,7 +47,7 @@ trait HSL extends ColorModel { self: WorkingSpace =>
       )
     )
 
-    override def fromRGB(nrgb: RGB): HSL = apply(toHSL(nrgb.red, nrgb.green, nrgb.blue))
+    def fromRGB(nrgb: RGB): HSL = apply(toHSL(nrgb.red, nrgb.green, nrgb.blue))
 
     /**
      * Factory method for creating instances of the HSL class.  This method validates input parameters and throws an exception
@@ -61,6 +63,17 @@ trait HSL extends ColorModel { self: WorkingSpace =>
       else None
     }
 
+    inline def toHSL(red: Double, green: Double, blue: Double): VectorValues = {
+      val values: VectorValues = hueMinMax(red, green, blue)
+
+      val delta: Double = values(2 /*MAX*/) - values(1 /*min*/)
+      val L: Double = (values(1 /*min*/) + values(2 /*MAX*/))
+
+      values(1) = if (delta == 0.0) 0.0 else delta / (1.0 - Math.abs((L) - 1.0))
+      values(2) = 0.5 * L // (min + max) / 2
+      values
+    }
+
     override def random(r: scala.util.Random = Random.defaultRandom): HSL = apply(
       VectorValues(
         r.nextDouble() * 360.0,
@@ -71,8 +84,7 @@ trait HSL extends ColorModel { self: WorkingSpace =>
 
   }
 
-  case class HSL private(override val values: VectorValues) extends CommonColor[HSL] {
-    override type VEC = this.type with HSL
+  case class HSL private(override val values: VectorValues) extends HueSaturationModel[HSL] {
 
     inline def hue: Double = values(0)
 
@@ -80,11 +92,13 @@ trait HSL extends ColorModel { self: WorkingSpace =>
 
     inline def lightness: Double = values(2)
 
-    override def copy(): VEC = new HSL(VectorValues(hue, saturation, lightness)).asInstanceOf[VEC]
+    override def similarity(that: HSL): Double = HSL.similarity(this, that)
 
-    override def toRGB: RGB = {
+    def copy(): HSL = new HSL(VectorValues(hue, saturation, lightness))
+
+    def toRGB: RGB = {
       // https://www.rapidtables.com/convert/color/hsl-to-rgb.html
-      val C = (1.0 - Math.abs((2*lightness) - 1.0)) * saturation
+      val C = (1.0 - Math.abs((2 * lightness) - 1.0)) * saturation
       RGB.apply(
         HSL.hcxmToRGBvalues(
           hue,

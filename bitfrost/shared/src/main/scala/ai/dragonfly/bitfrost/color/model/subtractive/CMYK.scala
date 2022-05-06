@@ -1,14 +1,18 @@
-package ai.dragonfly.bitfrost.color.model
+package ai.dragonfly.bitfrost.color.model.subtractive
 
-import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.color.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
+import ai.dragonfly.bitfrost.color.model.VectorColorModel
+import ai.dragonfly.bitfrost.color.space.VectorColorSpace
+import ai.dragonfly.bitfrost.{ColorContext, NormalizedValue}
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 
-trait CMYK extends ColorModel { self: WorkingSpace =>
+trait CMYK extends ColorContext {
+  self: WorkingSpace =>
 
-  object CMYK extends CommonColorCompanion[CMYK] with NormalizedValue {
+  object CMYK extends VectorColorSpace[CMYK, self.type] with NormalizedValue {
+
+    override val maxDistanceSquared: Double = 4.0
 
     def apply(values: VectorValues): CMYK = new CMYK(dimensionCheck(values, 4))
 
@@ -39,7 +43,7 @@ trait CMYK extends ColorModel { self: WorkingSpace =>
       )
     )
 
-    override def fromRGB(rgb: RGB): CMYK = {
+    def fromRGB(rgb: RGB): CMYK = {
       val K = 1.0 - Math.max(rgb.red, Math.max(rgb.green, rgb.blue))
       val kInv = 1.0 - K
       val C = (1.0 - rgb.red - K) / kInv
@@ -69,7 +73,7 @@ trait CMYK extends ColorModel { self: WorkingSpace =>
    * }}}
    */
 
-  case class CMYK private(override val values: VectorValues) extends CommonColor[CMYK] {
+  case class CMYK private(override val values: VectorValues) extends VectorColorModel[CMYK] {
     override type VEC = this.type with CMYK
 
     inline def cyan: Double = values(0)
@@ -80,7 +84,7 @@ trait CMYK extends ColorModel { self: WorkingSpace =>
 
     inline def black: Double = values(3)
 
-    override def toRGB: RGB = RGB(
+    def toRGB: RGB = RGB(
       RGB.clamp0to1(
         (1.0 - cyan) * (1.0 - black),
         (1.0 - magenta) * (1.0 - black),
