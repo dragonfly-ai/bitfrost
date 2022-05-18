@@ -22,7 +22,7 @@ object Demo {
 
     // generate random color palette
     val colors:mutable.HashSet[Lab] = mutable.HashSet[Lab]()
-    while (colors.size < 1) {
+    while (colors.size < 10) {
       val c:Lab = Lab.random()
       if (!colors.contains(c)) colors.add(c)
     }

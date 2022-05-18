@@ -63,6 +63,7 @@ object Gamut {
     }
 
     minV.euclid.distanceSquaredTo(vMAX)
+
   }
 
   def fromRGB(workingSpace: WorkingSpace)(res:Double = 0.025, transform: Vector3 => Vector3 = (v: Vector3) => v): Gamut = {
@@ -260,29 +261,8 @@ object Gamut {
   }
 }
 
+
 /**
- * After 40 years of ignoring Him altogether and a year of trying to understand exactly who He claimed to be,
- * I found an interpretation that makes unifying sense out of at least three seemingly contradictory perspectives.
- *
- * Eleonore Stump explains Yehoshua as an extension, or add on to God.  Other catholics describe Yehoshua as a projection
- * of God's nature onto human form.
- *
- * Pantheists and many Hindus and Sikhs describe God as the true nature behind all reality; the writer, director, and actor
- * portraying each of our individual natures as characters in an infinitely epic performance.  In other words, each of us
- * is a projection of God's nature onto human form, or an extension added on to God's own infinite nature.
- *
- * Buddha taught similarly: every being is a manifestation of Buddha consciousness.
- *
- * As I've watched Christians deliberate over questions like: "Is Jesus God or man?" part of me grins:
- * "Have you never noticed the one who sees when your eyes rest on your reflection in the mirror?"
- *
- * Yehoshua ordered his life around his recognition of Yahweh perceiving through His senses.  Isn't that what the
- * The Holy Spirit does?  Might the Hindus have called it Brahman?  I don't know how to distinguish.
- *
- * God is the one seeing what we look at, feeling what touches us, hearing what vibrates our ear drums, smelling what we
- * inhale, tasting what we put in our mouths, observing our thoughts and emotions.
- *
- * That's all we can ever have, there's nothing more, so He is everything to each of us.
  *
  * @param tetrahedra
  * @param cumulative

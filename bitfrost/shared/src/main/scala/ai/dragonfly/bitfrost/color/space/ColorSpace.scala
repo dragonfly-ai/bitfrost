@@ -33,7 +33,7 @@ trait ColorSpace[C <: ColorModel[C]] extends Sampleable[C] {
    */
   def weightedAverage(c1: C, w1: Double, c2: C, w2: Double): C
 
-  val maxDistanceSquared:Double
+  def maxDistanceSquared:Double
 
   def similarity(c1: C, c2: C): Double
 
@@ -59,7 +59,9 @@ trait VectorColorSpace[C <: VectorColorModel[C]] extends ColorSpace[C] {
    */
   def weightedAverage(c1: C, w1: Double, c2: C, w2: Double): C = ((c1 * w1) + (c2 * w2)).asInstanceOf[C]
 
-  override def similarity(c1: C, c2: C): Double = 1.0 - Math.sqrt(c1.euclid.distanceSquaredTo(c2) / maxDistanceSquared)
+  override def similarity(c1: C, c2: C): Double = {
+    1.0 - Math.sqrt(c1.euclid.distanceSquaredTo(c2) / maxDistanceSquared)
+  }
 }
 
 
@@ -86,7 +88,7 @@ trait PerceptualColorSpace[C <: PerceptualColorModel[C]] extends VectorColorSpac
     }
   )
 
-  override val maxDistanceSquared:Double = fullGamut.maxDistSquared
+  override lazy val maxDistanceSquared:Double = fullGamut.maxDistSquared
 
   def rgbGamut:Gamut
 
@@ -94,5 +96,10 @@ trait PerceptualColorSpace[C <: PerceptualColorModel[C]] extends VectorColorSpac
     val v = rgbGamut.random(r)
     apply(v.x, v.y, v.z)
   }
+
+//  override def random(r: Random = ai.dragonfly.math.Random.defaultRandom): C = {
+//    val v = fullGamut.random(r)
+//    apply(v.x, v.y, v.z)
+//  }
 
 }
