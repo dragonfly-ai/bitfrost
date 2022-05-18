@@ -1,6 +1,7 @@
 package ai.dragonfly.bitfrost.cie
 
 import ai.dragonfly.math.vector.Vector3
+import ai.dragonfly.bitfrost.cie.Constant.*
 
 
 /**
@@ -21,42 +22,70 @@ case class Gamma(gamma: Double) extends TransferFunction {
   override inline def encode(v: Double): Double = Math.pow(v, `1/Γ`)
 }
 
-object sRGB_ICC_V2 extends TransferFunction {
-  // https://www.color.org/sRGB.pdf
+object sRGB_Constants {
+  val `1/2.4`: Double = 0.4166666666666667
   val `1/1.055`:Double = 0.9478672985781991
   val `1/12.9232102`: Double = 0.077380154352051
+}
 
-  override inline def decode(V: Double): Double = if (V > 0.04045) {
-    Math.pow(`1/1.055` * (V + 0.055), 2.4) // Math.pow((V + 0.055) / 1.055, 2.4)
+object sRGB_ICC_V2 extends TransferFunction {
+  import sRGB_Constants.*
+  // https://en.wikipedia.org/wiki/SRGB#From_sRGB_to_CIE_XYZ
+
+  override inline def decode(i: Double): Double = if (i > 0.04045) {
+    Math.pow(`1/1.055` * (i + 0.055), 2.4) // Math.pow((V + 0.055) / 1.055, 2.4)
   } else {
-    `1/12.9232102` * V
+    `1/12.9232102` * i
   }
 
-  val `1/2.4`: Double = 0.4166666666666667
 
   override inline def encode(v: Double): Double = if (v > 0.0031308) {
-    Math.pow(1.055 * v, `1/2.4`) - 0.055
+    1.055 * Math.pow(v, `1/2.4`) - 0.055
   } else {
     12.9232102 * v
   }
-}
-
-
-object sRGB_ICC_V4 extends TransferFunction {
-
-  // https://www.color.org/sRGB.pdf
-  val `(79.8 / 12.9232102) / 80.0`:Double = 0.07718670396617087
-  val C:Double = 0.0025000000000000005 // (12.9232102*0.2) / (12.9232102*80) = 0.0025000000000000005
-
-  override inline def decode(V: Double): Double = if (V > 0.04045) {
-    79.8 * Math.pow(sRGB_ICC_V2.`1/1.055` * (V + 0.055), 2.4) + C// Math.pow((V + 0.055) / 1.055, 2.4)
-  } else {
-    (`(79.8 / 12.9232102) / 80.0` * V) + C
-  }
-
-  override inline def encode(v: Double): Double = sRGB_ICC_V2.encode(v)
 
 }
+
+//
+//object sRGB_ICC_V4 extends TransferFunction {
+//  import sRGB_Constants.*
+//  // https://www.color.org/sRGB.pdf
+////  val `(79.8 / 12.9232102) / 80.0`:Double = 0.07718670396617087
+////  //val `1/((79.8 / 12.9232102) / 80.0)`:Double = 12.955599197994989
+////
+////  val `80/79.8`:Double = 1.0025062656641603
+////  val `0.2/79.8`:Double = 0.0025062656641604013
+////
+////  val A:Double = 0.8772169227486248 // (79.8 / Math.pow(1.055, 2.4)) / 80.0
+////
+////  override inline def decode(i: Double): Double = if (i > 0.04045) {
+////    A * Math.pow(i + 0.055, 2.4)
+////  } else {
+////    (`(79.8 / 12.9232102) / 80.0` * i) + 0.0025
+////  }
+////
+////  override inline def encode(i: Double): Double = if (i > 0.0031308) {
+////    (1.055 * Math.pow((`80/79.8` * i) - `0.2/79.8`, `1/2.4`)) - 0.055
+////  } else {
+////    //`1/((79.8 / 12.9232102) / 80.0)` * (i - 0.0025)
+////    12.955599197994987 * (i - 0.0025)
+////  }
+//
+//  override inline def decode(i: Double): Double = if (i > 0.04045) {
+//    Math.pow(0.946879 * i + 0.0520784, 2.4) + 0.0025
+//  } else {
+//    (0.0772059 * i) + 0.0025
+//  }
+//
+//  override inline def encode(i: Double): Double = sRGB_ICC_V2.encode(i)
+////  if (i > 0.0031308) {
+////    (Math.pow(i - 0.0025, `1/2.4`) - 0.0520784) / 0.0946879
+////  } else {
+////    (i - 0.0025) / 0.0772059
+////  }
+//
+//}
 
 object Lstar extends TransferFunction {
   val `1/1.16`: Double = 0.862068966 // 1.0/1.16

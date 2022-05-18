@@ -15,8 +15,6 @@ import ai.dragonfly.math.stats.probability.distributions.Sampleable
 
 package object bitfrost {
 
-  type XYZ = Vector3
-
   trait NormalizedValue {
 
     inline def valid0to1(percentage: Double): Boolean = percentage >= 0.0 && percentage <= 1.0
@@ -58,8 +56,8 @@ package object bitfrost {
 
     val knownContexts:Array[WorkingSpace with ProvidedColorContexts] = Array[WorkingSpace with ProvidedColorContexts](
 //      Adobe_RGB_1998, Apple_RGB, Best_RGB, Beta_RGB, Bruce_RGB, CIE_RGB, ColorMatch_RGB, Don_RGB_4, ECI_RGB_v2,
-//      Ekta_Space_PS5, NTSC_RGB, PAL_RGB, ProPhoto_RGB, SMPTE_Minus_C_RGB, sRGB, Wide_Gamut_RGB,
-      P3_D65_Display
+//      Ekta_Space_PS5, NTSC_RGB, PAL_RGB, ProPhoto_RGB, SMPTE_Minus_C_RGB,
+      sRGB //, Wide_Gamut_RGB, P3_D65_Display
     )
 
     //Adobe RGB (1998)
@@ -320,7 +318,7 @@ package object bitfrost {
     }
 
     object sRGB extends ProvidedColorContexts {
-      override val transferFunction: TransferFunction = sRGB_ICC_V4 // ~2.2 ?
+      override val transferFunction: TransferFunction = sRGB_ICC_V2 // ~2.2 ?
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
         ChromaticityPrimary( 0.64, 0.33, 0.212656),
@@ -362,7 +360,8 @@ package object bitfrost {
         ChromaticityPrimary( 0.2650, 0.6900, Double.NaN),
         ChromaticityPrimary( 0.1500, 0.0600, Double.NaN)
       )
-      override val transferFunction: TransferFunction = sRGB_ICC_V4
+      //https://www.color.org/chardata/rgb/DisplayP3.xalter
+      override val transferFunction: TransferFunction = sRGB_ICC_V2
 
       override val illuminant: Illuminant = D65
 

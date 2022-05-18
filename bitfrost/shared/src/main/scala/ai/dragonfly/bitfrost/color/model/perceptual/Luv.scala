@@ -2,8 +2,9 @@ package ai.dragonfly.bitfrost.color.model.perceptual
 
 import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
+import ai.dragonfly.bitfrost.cie.Constant.*
 import ai.dragonfly.bitfrost.color.model.PerceptualColorModel
-import ai.dragonfly.bitfrost.color.space.PerceptualColorSpace
+import ai.dragonfly.bitfrost.color.space.{PerceptualColorSpace, XYZ}
 import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.vector.{Vector2, Vector3, VectorValues, dimensionCheck}
 import ai.dragonfly.math.{Random, cubeInPlace}
@@ -39,7 +40,9 @@ trait Luv extends ColorContext {
     }
   }
 
-  object Luv extends PerceptualColorSpace[Luv, self.type] {
+  object Luv extends PerceptualColorSpace[Luv] {
+
+    override def ill: Illuminant = illuminant
 
     def apply(values: VectorValues): Luv = new Luv(dimensionCheck(values, 3))
 
@@ -58,13 +61,13 @@ trait Luv extends ColorContext {
 
     // XYZ to LUV and helpers:
 
-    val UV(uₙ: Double, vₙ: Double) = UV.fromXYZ(illuminant.vector)
+    val UV(uₙ: Double, vₙ: Double) = UV.fromXYZ(ill.vector)
 
     inline def fL(t: Double): Double = if (t > ϵ) 116.0 * Math.cbrt(t) - 16.0 else k * t
 
     def fromXYZ(xyz: Vector3): Luv = {
 
-      val `Y/Yₙ`: Double = xyz.y / illuminant.vector.y
+      val `Y/Yₙ`: Double = xyz.y / ill.vector.y
 
       val `L⭑` = fL(`Y/Yₙ`)
 

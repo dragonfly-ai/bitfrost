@@ -23,7 +23,7 @@ trait RGBA32 extends ColorContext {
   given Conversion[RGBA32, Int] with
     def apply(c: RGBA32): Int = c.rgba
 
-  object RGBA32 extends UtilRGB32[RGBA32, self.type] {
+  object RGBA32 extends UtilRGB32[RGBA32] {
     def apply(rgba: Int): RGBA32 = new RGBA32(rgba)
 
     /**

@@ -1,18 +1,20 @@
 package ai.dragonfly.bitfrost.color.space
 
 import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.cie.{GamutXYZ, WorkingSpace, XYZ}
+import ai.dragonfly.bitfrost.cie.{Illuminant, WorkingSpace}
 import ai.dragonfly.bitfrost.color.*
 import ai.dragonfly.bitfrost.color.model.*
+import ai.dragonfly.bitfrost.color.model.perceptual.XYZ
 import ai.dragonfly.bitfrost.color.model.rgb.RGB
 import ai.dragonfly.bitfrost.color.model.rgb.discrete.ARGB32
+import ai.dragonfly.bitfrost.color.spectrum.SpectralTables
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
 import ai.dragonfly.math.vector.Vector3
 
 import scala.collection.mutable
 import scala.util.Random
 
-//type ColorSpace[CM <: ColorModel, WS <: WorkingSpace] = CM with WS
+//type ColorSpace[CM <: ColorModel] = CM with WS
 
 //type sRGB = ColorSpace[RGB, ai.dragonfly.bitfrost.context.sRGB.type]
 
@@ -20,7 +22,7 @@ import scala.util.Random
  * trait for Color Companion Objects.
  */
 
-trait ColorSpace[C <: ColorModel[C], WS <: WorkingSpace] extends Sampleable[C] {
+trait ColorSpace[C <: ColorModel[C]] extends Sampleable[C] {
   /**
    * Computes a weighted average of two colors in C color space.
    * @param c1 the first color.
@@ -37,15 +39,15 @@ trait ColorSpace[C <: ColorModel[C], WS <: WorkingSpace] extends Sampleable[C] {
 
 }
 
-trait DiscreteColorSpace[C <: DiscreteColorModel[C], WS <: WorkingSpace] extends ColorSpace[C, WS] {
+trait DiscreteColorSpace[C <: DiscreteColorModel[C]] extends ColorSpace[C] {
 
 }
 
-trait CylindricalColorSpace[C <: CylindricalColorModel[C], WS <: WorkingSpace] extends ColorSpace[C, WS] {
+trait CylindricalColorSpace[C <: CylindricalColorModel[C]] extends ColorSpace[C] {
 
 }
 
-trait VectorColorSpace[C <: VectorColorModel[C], WS <: WorkingSpace] extends ColorSpace[C, WS] {
+trait VectorColorSpace[C <: VectorColorModel[C]] extends ColorSpace[C] {
 
   /**
    * Computes a weighted average of two colors in C color space.
@@ -61,13 +63,28 @@ trait VectorColorSpace[C <: VectorColorModel[C], WS <: WorkingSpace] extends Col
 }
 
 
-trait PerceptualColorSpace[C <: PerceptualColorModel[C], WS <: WorkingSpace] extends VectorColorSpace[C, WS] {
+trait PerceptualColorSpace[C <: PerceptualColorModel[C]] extends VectorColorSpace[C] {
 
   def fromXYZ(xyz: XYZ): C
 
   def apply(c1:Double, c2:Double, c3:Double): C
 
-  lazy val tetrahedralVolume:TetrahedralVolume = XYZ.tetrahedralVolume(GamutXYZ.CuratedCIE2006_5nm, (v:Vector3) => { val o = Vector3(fromXYZ(v).values); println(o); o })
+  def ill:Illuminant
+
+  lazy val tetrahedralVolume:Gamut = Gamut.fromSpectralSamples(
+    SpectralTables.XYZ_5NM_WITH_0_1NM_PEAKS_CIE2006,
+    (v:Vector3) => {
+      Vector3(
+        fromXYZ(
+          Vector3(
+            ill.vector.x * v.x,
+            ill.vector.y * v.y,
+            ill.vector.z * v.z
+          )
+        ).values
+      )
+    }
+  )
 
   override def random(r: Random = ai.dragonfly.math.Random.defaultRandom): C = {
     val v = tetrahedralVolume.random(r)

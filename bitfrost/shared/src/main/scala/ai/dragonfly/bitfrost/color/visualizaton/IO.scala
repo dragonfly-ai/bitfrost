@@ -1,14 +1,14 @@
 package ai.dragonfly.bitfrost.color.visualizaton
 
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.color.space.TetrahedralVolume
+import ai.dragonfly.bitfrost.color.space.Gamut
 import ai.dragonfly.math.vector.*
 
 import java.io.PrintWriter
 
 object IO {
 
-  def writeMesh(workingSpace: WorkingSpace)(tetrahedralVolume: TetrahedralVolume, v2c: Vector3 => workingSpace.ARGB32, out: java.io.OutputStream): Unit = {
+  def writeMesh(workingSpace: WorkingSpace)(tetrahedralVolume: Gamut, v2c: Vector3 => workingSpace.ARGB32, out: java.io.OutputStream): Unit = {
     val sout: PrintWriter = new PrintWriter(out)
 
     sout.write(

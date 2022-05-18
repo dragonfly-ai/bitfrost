@@ -10,7 +10,7 @@ import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 trait CMYK extends ColorContext {
   self: WorkingSpace =>
 
-  object CMYK extends VectorColorSpace[CMYK, self.type] with NormalizedValue {
+  object CMYK extends VectorColorSpace[CMYK] with NormalizedValue {
 
     override val maxDistanceSquared: Double = 4.0
 

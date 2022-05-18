@@ -4,8 +4,9 @@ import Jama.Matrix
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
+import ai.dragonfly.bitfrost.color.model.perceptual.XYZ
 import ai.dragonfly.bitfrost.color.space.*
-import ai.dragonfly.bitfrost.{NormalizedValue, XYZ}
+import ai.dragonfly.bitfrost.NormalizedValue
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.matrix.MatrixValues
 import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
@@ -13,11 +14,11 @@ import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
 
 import scala.language.implicitConversions
 
-trait RGB extends ColorContext {
-  self: WorkingSpace =>
+trait RGB extends ColorContext { self: WorkingSpace =>
 
-  object RGB extends VectorColorSpace[RGB, self.type] with NormalizedValue {
-    val `1/255`: Double = 1.0 / 255.0
+  val `1/255`: Double = 1.0 / 255.0
+
+  object RGB extends VectorColorSpace[RGB] with NormalizedValue {
 
     override val maxDistanceSquared: Double = 3.0
 
@@ -90,15 +91,17 @@ trait RGB extends ColorContext {
 
     override def copy(): VEC = new RGB(VectorValues(red, green, blue)).asInstanceOf[VEC]
 
-    def toXYZ: XYZ = Vector3(
-      (M * new Matrix(
-        MatrixValues(
-          VectorValues(transferFunction.decode(red)),
-          VectorValues(transferFunction.decode(green)),
-          VectorValues(transferFunction.decode(blue))
-        )
-      )).getRowPackedCopy()
-    )
+    def toXYZ: XYZ = {
+      Vector3(
+        (M * new Matrix(
+          MatrixValues(
+            VectorValues(transferFunction.decode(red)),
+            VectorValues(transferFunction.decode(green)),
+            VectorValues(transferFunction.decode(blue))
+          )
+        )).getRowPackedCopy()
+      )
+    }
 
     inline def toRGB: RGB = this
   }

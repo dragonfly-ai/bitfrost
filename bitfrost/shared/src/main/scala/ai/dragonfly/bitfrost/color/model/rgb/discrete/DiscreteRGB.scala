@@ -14,7 +14,7 @@ trait DiscreteRGB[C <: DiscreteRGB[C]] extends DiscreteColorModel[C] {
 }
 
 
-trait UtilDiscreteRGB[C <: DiscreteRGB[C], WS <: WorkingSpace] extends DiscreteColorSpace[C, WS] {
+trait UtilDiscreteRGB[C <: DiscreteRGB[C]] extends DiscreteColorSpace[C] {
   val min:Int
   val MAX:Int
   val MAXD:Double
@@ -52,7 +52,7 @@ trait UtilDiscreteRGB[C <: DiscreteRGB[C], WS <: WorkingSpace] extends DiscreteC
 
 
 
-trait UtilRGB32[C <: DiscreteRGB[C], WS <: WorkingSpace] extends UtilDiscreteRGB[C, WS] {
+trait UtilRGB32[C <: DiscreteRGB[C]] extends UtilDiscreteRGB[C] {
   override val min:Int = 0
   override val MAX:Int = 255
   override val MAXD:Double = 255.0
@@ -67,7 +67,7 @@ trait UtilRGB32[C <: DiscreteRGB[C], WS <: WorkingSpace] extends UtilDiscreteRGB
 }
 
 
-trait UtilDiscreteRGB64[C <: DiscreteRGB[C], WS <: WorkingSpace] extends UtilDiscreteRGB[C, WS] {
+trait UtilDiscreteRGB64[C <: DiscreteRGB[C]] extends UtilDiscreteRGB[C] {
   override val min:Int = 0
   override val MAX:Int = 65535
   override val MAXD:Double = 65535.0

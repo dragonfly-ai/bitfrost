@@ -22,7 +22,7 @@ trait ARGB32 extends ColorContext { self: WorkingSpace =>
   given Conversion[ARGB32, Int] with
     def apply(c: ARGB32): Int = c.argb
 
-  object ARGB32 extends UtilRGB32[ARGB32, self.type] {
+  object ARGB32 extends UtilRGB32[ARGB32] {
 
     def apply(argb: Int): ARGB32 = new ARGB32(argb)
 

@@ -1,10 +1,8 @@
-package ai.dragonfly.bitfrost
+package ai.dragonfly.bitfrost.cie
 
 import ai.dragonfly.math.vector.Vector3
 
-package object cie {
-
-  type XYZ = Vector3
+object Constant {
 
   // constants
   // http://www.brucelindbloom.com/index.html?LContinuity.html

@@ -17,7 +17,7 @@ trait ARGB64 extends ColorContext {
   given Conversion[ARGB64, Long] with
     def apply(c: ARGB64): Long = c.argb
 
-  object ARGB64 extends UtilDiscreteRGB64[ARGB64, self.type] {
+  object ARGB64 extends UtilDiscreteRGB64[ARGB64] {
     def apply(argb: Long): ARGB64 = new ARGB64(argb)
 
     /**

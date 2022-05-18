@@ -2,8 +2,9 @@ package ai.dragonfly.bitfrost.color.model.perceptual
 
 import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
+import ai.dragonfly.bitfrost.cie.Constant.*
 import ai.dragonfly.bitfrost.color.model.PerceptualColorModel
-import ai.dragonfly.bitfrost.color.space.PerceptualColorSpace
+import ai.dragonfly.bitfrost.color.space.{PerceptualColorSpace, XYZ}
 import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
 import ai.dragonfly.math.{Random, cubeInPlace}
@@ -11,7 +12,9 @@ import ai.dragonfly.math.{Random, cubeInPlace}
 trait Lab extends ColorContext {
   self: WorkingSpace =>
 
-  object Lab extends PerceptualColorSpace[Lab, self.type] {
+  object Lab extends PerceptualColorSpace[Lab] {
+
+    override def ill: Illuminant = illuminant
 
     def apply(values: VectorValues): Lab = new Lab(dimensionCheck(values, 3))
 
@@ -36,12 +39,12 @@ trait Lab extends ColorContext {
      * @return
      */
     def fromXYZ(xyz: XYZ): Lab = {
-      val fy: Double = f(illuminant.`1/yₙ` * xyz.y)
+      val fy: Double = f(ill.`1/yₙ` * xyz.y)
 
       apply(
         116.0 * fy - 16.0,
-        500.0 * (f(illuminant.`1/xₙ` * xyz.x) - fy),
-        200.0 * (fy - f(illuminant.`1/zₙ` * xyz.z))
+        500.0 * (f(ill.`1/xₙ` * xyz.x) - fy),
+        200.0 * (fy - f(ill.`1/zₙ` * xyz.z))
       )
     }
   }

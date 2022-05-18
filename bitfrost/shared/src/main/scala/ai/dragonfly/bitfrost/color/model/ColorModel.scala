@@ -1,6 +1,7 @@
 package ai.dragonfly.bitfrost.color.model
 
 import ai.dragonfly.bitfrost.cie.*
+import ai.dragonfly.bitfrost.color.model.perceptual.XYZ
 import ai.dragonfly.math.vector.*
 
 

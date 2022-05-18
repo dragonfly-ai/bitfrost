@@ -12,7 +12,7 @@ trait HueSaturationModel[C <: HueSaturationModel[C]] extends CylindricalColorMod
   def saturation:Double
 }
 
-trait HueSaturationSpace [C <: HueSaturationModel[C], WS <: WorkingSpace] extends CylindricalColorSpace[C, WS] with NormalizedValue {
+trait HueSaturationSpace [C <: HueSaturationModel[C]] extends CylindricalColorSpace[C] with NormalizedValue {
 
   def apply(h:Double, s:Double, lv:Double):C
 

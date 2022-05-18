@@ -1,7 +1,7 @@
 package ai.dragonfly.bitfrost.verification
 
-import ai.dragonfly.bitfrost.cie.XYZ
 import ai.dragonfly.bitfrost.ColorContext
+import ai.dragonfly.bitfrost.color.space.XYZ
 
 object ConversionFidelity extends App {
   for (ctx <- ColorContext.knownContexts.take(1)) {
@@ -38,55 +38,55 @@ object ConversionFidelity extends App {
             println(s"$c $err")
             `error(ARGB32<->RGBA32)` += err
           }
-          // ARGB -> RGB -> CMYK -> RGB -> ARGB
-          val cmyk = CMYK.fromRGB(rgb)
-          var cT = ARGB32.fromRGB(cmyk.toRGB)
-          err = c.similarity(cT)
-          if (err > 0.0) {
-            println(s"$c -> $cmyk -> $cT: $err")
-            `error(RGB<->CMYK)` += err
-          }
-
-          // ARGB -> RGB -> HSV -> RGB -> ARGB
-          val hsv = HSV.fromRGB(rgb)
-          cT = ARGB32.fromRGB(hsv.toRGB)
-          err = c.similarity(cT)
-          if (err > 0.0) {
-            println(s"$c -> $hsv -> $cT: $err")
-            `error(RGB<->HSV)` += err
-          }
-          // ARGB -> RGB -> HSL -> RGB -> ARGB
-          val hsl = HSL.fromRGB(rgb)
-          cT = ARGB32.fromRGB(hsl.toRGB)
-          err = c.similarity(cT)
-          if (err > 0.0) {
-            println(s"$c -> $hsl -> $cT: $err")
-            `error(RGB<->HSL)` += err
-          }
+//          // ARGB -> RGB -> CMYK -> RGB -> ARGB
+//          val cmyk = CMYK.fromRGB(rgb)
+//          var cT = ARGB32.fromRGB(cmyk.toRGB)
+//          err = c.similarity(cT)
+//          if (err > 0.0) {
+//            println(s"$c -> $cmyk -> $cT: $err")
+//            `error(RGB<->CMYK)` += err
+//          }
+//
+//          // ARGB -> RGB -> HSV -> RGB -> ARGB
+//          val hsv = HSV.fromRGB(rgb)
+//          cT = ARGB32.fromRGB(hsv.toRGB)
+//          err = c.similarity(cT)
+//          if (err > 0.0) {
+//            println(s"$c -> $hsv -> $cT: $err")
+//            `error(RGB<->HSV)` += err
+//          }
+//          // ARGB -> RGB -> HSL -> RGB -> ARGB
+//          val hsl = HSL.fromRGB(rgb)
+//          cT = ARGB32.fromRGB(hsl.toRGB)
+//          err = c.similarity(cT)
+//          if (err > 0.0) {
+//            println(s"$c -> $hsl -> $cT: $err")
+//            `error(RGB<->HSL)` += err
+//          }
           // ARGB -> RGB -> XYZ -> RGB -> ARGB
           val xyz = rgb.toXYZ
-          cT = ARGB32.fromRGB(XYZ.toRGB(ctx)(xyz))
+          var cT = ARGB32.fromRGB(XYZ.toRGB(ctx)(xyz))
           err = c.similarity(cT)
           if (err > 0.0) {
             println(s"$c -> $xyz -> $cT: $err")
             `error(RGB<->XYZ)` += err
           }
-          // ARGB -> RGB -> XYZ -> Lab -> XYZ -> RGB -> ARGB
-          val lab = Lab.fromXYZ(xyz)
-          cT = ARGB32.fromRGB(XYZ.toRGB(ctx)(lab.toXYZ))
-          err = c.similarity(cT)
-          if (err > 0.0) {
-            println(s"$c -> $lab -> $cT: $err")
-            `error(RGB<->Lab)` += err
-          }
-          // ARGB -> RGB -> XYZ -> Luv -> XYZ -> RGB -> ARGB
-          val luv = Luv.fromXYZ(xyz)
-          cT = ARGB32.fromRGB(XYZ.toRGB(ctx)(luv.toXYZ))
-          err = c.similarity(cT)
-          if (err > 0.0) {
-            println(s"$c -> $luv -> $cT: $err")
-            `error(RGB<->Luv)` += err
-          }
+//          // ARGB -> RGB -> XYZ -> Lab -> XYZ -> RGB -> ARGB
+//          val lab = Lab.fromXYZ(xyz)
+//          cT = ARGB32.fromRGB(XYZ.toRGB(ctx)(lab.toXYZ))
+//          err = c.similarity(cT)
+//          if (err > 0.0) {
+//            println(s"$c -> $lab -> $cT: $err")
+//            `error(RGB<->Lab)` += err
+//          }
+//          // ARGB -> RGB -> XYZ -> Luv -> XYZ -> RGB -> ARGB
+//          val luv = Luv.fromXYZ(xyz)
+//          cT = ARGB32.fromRGB(XYZ.toRGB(ctx)(luv.toXYZ))
+//          err = c.similarity(cT)
+//          if (err > 0.0) {
+//            println(s"$c -> $luv -> $cT: $err")
+//            `error(RGB<->Luv)` += err
+//          }
         }
       }
     }

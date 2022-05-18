@@ -10,7 +10,7 @@ import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 trait HSL extends ColorContext {
   self: WorkingSpace =>
 
-  object HSL extends HueSaturationSpace[HSL, self.type] {
+  object HSL extends HueSaturationSpace[HSL] {
 
     def apply(values: VectorValues): HSL = new HSL(dimensionCheck(values, 3))
 

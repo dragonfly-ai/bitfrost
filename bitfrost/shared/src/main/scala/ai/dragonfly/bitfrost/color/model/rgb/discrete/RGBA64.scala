@@ -16,7 +16,7 @@ trait RGBA64 extends ColorContext { self: WorkingSpace =>
   given Conversion[RGBA64, Long] with
     def apply(c: RGBA64): Long = c.rgba
 
-  object RGBA64 extends UtilDiscreteRGB64[RGBA64, self.type] {
+  object RGBA64 extends UtilDiscreteRGB64[RGBA64] {
     def apply(rgba: Long): RGBA64 = new RGBA64(rgba)
 
     /**
