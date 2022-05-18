@@ -18,7 +18,6 @@ object ColorSpaceNoise extends App {
 
   val contexts = ai.dragonfly.bitfrost.ColorContext.knownContexts
   for (context <- contexts) {
-    //val context = ai.dragonfly.bitfrost.ColorContext.sRGB
     import context.*
 
     ai.dragonfly.bitfrost.color.visualizaton.IO.writeMesh(context)(
@@ -53,7 +52,6 @@ object ColorSpaceNoise extends App {
         space.tetrahedralVolume,
         (v2c: Vector3) => {
           val xyz = space(v2c.x, v2c.y, v2c.z).toXYZ
-          //if (Math.random() < 0.01) println(s"$space $xyz -> ${XYZ.toRGB(context)(xyz)}" )
           context.ARGB32.fromRGB(XYZ.toRGB(context)(xyz))
         },
         os

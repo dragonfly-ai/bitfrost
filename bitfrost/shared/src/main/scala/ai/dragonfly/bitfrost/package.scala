@@ -31,8 +31,6 @@ package object bitfrost {
     }
   }
 
-
-
   trait ColorContext {
 
   }
@@ -47,17 +45,18 @@ package object bitfrost {
     with HSL
     with HSV
     with Lab
-    with Luv
+    with Luv {
+    override def toString:String = this.getClass.getSimpleName
+  }
 
   object ColorContext {
 
     import ai.dragonfly.bitfrost.cie.*
     import Illuminant.*
 
-    val knownContexts:Array[WorkingSpace with ProvidedColorContexts] = Array[WorkingSpace with ProvidedColorContexts](
-//      Adobe_RGB_1998, Apple_RGB, Best_RGB, Beta_RGB, Bruce_RGB, CIE_RGB, ColorMatch_RGB, Don_RGB_4, ECI_RGB_v2,
-//      Ekta_Space_PS5, NTSC_RGB, PAL_RGB, ProPhoto_RGB, SMPTE_Minus_C_RGB,
-      sRGB //, Wide_Gamut_RGB, P3_D65_Display
+    val knownContexts:Array[ProvidedColorContexts] = Array[ProvidedColorContexts](
+      Adobe_RGB_1998, Apple_RGB, Best_RGB, Beta_RGB, Bruce_RGB, CIE_RGB, ColorMatch_RGB, Don_RGB_4, ECI_RGB_v2,
+      Ekta_Space_PS5, NTSC_RGB, PAL_RGB, ProPhoto_RGB, SMPTE_Minus_C_RGB, sRGB, Wide_Gamut_RGB, P3_D65_Display
     )
 
     //Adobe RGB (1998)
