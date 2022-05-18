@@ -4,7 +4,7 @@ import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.cie.Constant.*
 import ai.dragonfly.bitfrost.color.model.PerceptualColorModel
-import ai.dragonfly.bitfrost.color.space.{PerceptualColorSpace, XYZ}
+import ai.dragonfly.bitfrost.color.space.{Gamut, PerceptualColorSpace, XYZ}
 import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.vector.{Vector2, Vector3, VectorValues, dimensionCheck}
 import ai.dragonfly.math.{Random, cubeInPlace}
@@ -57,8 +57,6 @@ trait Luv extends ColorContext {
 
     def apply(L: Double, u: Double, v: Double): Luv = apply(VectorValues(L, u, v))
 
-    override val maxDistanceSquared: Double = 10000
-
     // XYZ to LUV and helpers:
 
     val UV(uₙ: Double, vₙ: Double) = UV.fromXYZ(ill.vector)
@@ -83,6 +81,9 @@ trait Luv extends ColorContext {
       )
     }
 
+    override val rgbGamut:Gamut = Gamut.fromRGB(self)(transform = (v:XYZ) => Vector3(fromXYZ(v).values))
+
+    //    override def toString:String = s"${illuminant}L*u*v*"
   }
 
   private def _toRGB(luv: Luv):RGB = XYZ.toRGB(this)(luv.toXYZ)
@@ -123,7 +124,12 @@ trait Luv extends ColorContext {
       Vector3(X, Y, Z)
     }
 
+    override def similarity(that: Luv): Double = {
+      Luv.similarity(this, that)
+    }
+
     override def toRGB:RGB = _toRGB(this)
+
   }
 
 }

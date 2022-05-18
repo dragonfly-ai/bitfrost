@@ -49,7 +49,7 @@ object ColorSpaceNoise extends App {
     for (space <- colorSpaces) {
       val os:java.io.OutputStream = new java.io.FileOutputStream( new File(s"./demo/ply/$context$space.ply") )
       IO.writeMesh(context)(
-        space.tetrahedralVolume,
+        space.fullGamut,
         (v2c: Vector3) => {
           val xyz = space(v2c.x, v2c.y, v2c.z).toXYZ
           context.ARGB32.fromRGB(XYZ.toRGB(context)(xyz))

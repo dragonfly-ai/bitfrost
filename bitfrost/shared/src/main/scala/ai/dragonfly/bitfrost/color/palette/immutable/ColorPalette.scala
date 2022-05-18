@@ -46,12 +46,12 @@ class ColorPalette[C <: ColorModel[C]](val colorFrequencies: Array[ColorFrequenc
     */
 
   def nearestMatch(color: C): ColorFrequency[C] = {
-    var distSquared = Double.MaxValue
+    var similarity = 0.0
     var colorMatch: ColorFrequency[C] = null
     for ( m <- colorFrequencies ) {
-      val dist = color.similarity(m.color)
-      if (dist < distSquared) {
-        distSquared = dist
+      val tempSimilarity = color.similarity(m.color)
+      if (tempSimilarity > similarity) {
+        similarity = tempSimilarity
         colorMatch = m
       }
     }

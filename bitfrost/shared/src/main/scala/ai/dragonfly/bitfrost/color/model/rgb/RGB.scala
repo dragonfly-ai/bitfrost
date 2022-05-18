@@ -103,6 +103,8 @@ trait RGB extends ColorContext { self: WorkingSpace =>
       )
     }
 
+    override def similarity(that: RGB): Double = RGB.similarity(this, that)
+
     inline def toRGB: RGB = this
   }
 

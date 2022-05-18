@@ -92,6 +92,8 @@ trait CMYK extends ColorContext {
       )
     )
 
+    override def similarity(that: CMYK): Double = CMYK.similarity(this, that)
+
     override def toString: String = s"CMYK($cyan, $magenta, $yellow, $black)"
 
     override def copy(): VEC = new CMYK(VectorValues(cyan, magenta, yellow, black)).asInstanceOf[VEC]

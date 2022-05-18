@@ -21,9 +21,7 @@ trait CylindricalColorModel[C <: CylindricalColorModel[C]] extends ColorModel[C]
   val values:VectorValues
 }
 
-trait VectorColorModel[C <: VectorColorModel[C]] extends ColorModel[C] with Vector {
-  override def similarity(that: C): Double = this.euclid.distanceTo(that)
-}
+trait VectorColorModel[C <: VectorColorModel[C]] extends ColorModel[C] with Vector
 
 trait PerceptualColorModel[C <: PerceptualColorModel[C]] extends VectorColorModel[C] {
   def toXYZ: XYZ

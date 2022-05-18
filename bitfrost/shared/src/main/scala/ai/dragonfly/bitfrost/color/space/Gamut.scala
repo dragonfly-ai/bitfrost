@@ -2,21 +2,23 @@ package ai.dragonfly.bitfrost.color.space
 
 import ai.dragonfly.bitfrost.cie.{Illuminant, WorkingSpace}
 import ai.dragonfly.bitfrost.color.spectrum.WavelengthXYZ
+import ai.dragonfly.math.matrix.PCA
+import ai.dragonfly.math.matrix.data.*
 import ai.dragonfly.math.squareInPlace
 import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
 import ai.dragonfly.math.stats.probability.distributions.stream.StreamingVectorStats
-import ai.dragonfly.math.vector.Vector3
+import ai.dragonfly.math.vector.{VECTORS, Vector3}
 
 import scala.collection.immutable
 
 
 object Gamut {
 
-  def apply(cumulativelyWeightedTrahedra: immutable.Seq[(Double, Tetrahedron)]):Gamut = {
+  def apply(cumulativelyWeightedTrahedra: immutable.Seq[(Double, Tetrahedron)], maxDistSquared:Double):Gamut = {
 
     val totalVolume:Double = cumulativelyWeightedTrahedra.last._1
-    println(s"TetrahedralVolume.apply(...): totalVolume = $totalVolume")
+    //println(s"TetrahedralVolume.apply(...): totalVolume = $totalVolume")
 
     val cumulative:Array[Double] = new Array[Double](cumulativelyWeightedTrahedra.size)
     val tetrahedra:Array[Tetrahedron] = new Array[Tetrahedron](cumulativelyWeightedTrahedra.size)
@@ -29,8 +31,38 @@ object Gamut {
       remaining = remaining.tail
       i += 1
     }
-    Gamut(tetrahedra, cumulative)
+    Gamut(tetrahedra, cumulative, maxDistSquared)
 
+  }
+
+  def computeMaxDistSquared(points:Array[Vector3], mean:Vector3):Double = {
+    val vs:VECTORS = new VECTORS(points.length)
+
+    for (i <- points.indices) vs(i) = points(i) - mean
+
+    val pca = PCA ( StaticUnsupervisedData( vs ) )
+
+    val mode = pca.basisPairs.head.basisVector
+
+    var min: Double = Double.MaxValue
+    var minV: Vector3 = mean
+    var MAX: Double = Double.MinValue
+    var vMAX: Vector3 = mean
+
+    points.foreach {
+      p =>
+        val t:Double = mode dot p
+        if (t < min) {
+          min = t
+          minV = p
+        }
+        if (t > MAX) {
+          MAX = t
+          vMAX = p
+        }
+    }
+
+    minV.euclid.distanceSquaredTo(vMAX)
   }
 
   def fromRGB(workingSpace: WorkingSpace)(res:Double = 0.025, transform: Vector3 => Vector3 = (v: Vector3) => v): Gamut = {
@@ -107,8 +139,10 @@ object Gamut {
       c += res
     }
 
-    println(s"p = $p vs size = $size")
+//    println(s"p = $p vs size = $size")
     val center:Vector3 = Vector3(svs.average().values)
+
+    val maxDistSquared: Double = computeMaxDistSquared(points, center)
 
     def addTetrahedron(p0: Vector3, p1: Vector3, p2: Vector3, p3: Vector3): Unit = {
       addTet(Tetrahedron(center, p0, p1, p2))
@@ -116,7 +150,7 @@ object Gamut {
     }
 
     def addTet(tet: Tetrahedron):Unit = {
-      if (tet == null) println("adding a null tetrahedron")
+      if (tet == null) println("tried to add a null tetrahedron?")
       else {
         var vol: Double = tet.volume
         if (vol > 0) {
@@ -138,7 +172,7 @@ object Gamut {
       )
     }
 
-    apply(cumulativelyWeightedTrahedra)
+    apply(cumulativelyWeightedTrahedra, maxDistSquared)
   }
 
   def fromSpectralSamples(spectralSamples: Array[WavelengthXYZ], transform: Vector3 => Vector3 = (v: Vector3) => v): Gamut = {
@@ -171,16 +205,18 @@ object Gamut {
         xyz.y / sv.maxValues(1),
         xyz.z / sv.maxValues(2)
       )
-      //      print(s"xyz = $xyz => nxyz = $nxyz => transform(nxyz) = ${transform(nxyz)}")
+      // print(s"xyz = $xyz => nxyz = $nxyz => transform(nxyz) = ${transform(nxyz)}")
       points(i) = transform(nxyz)
       sv2(points(i))
     }
 
     val mean: Vector3 = Vector3(sv2.average().values)
 
-    println(s"mean $mean")
+    val maxDistSquared: Double = computeMaxDistSquared(points, mean)
 
-    println(s"point count: $p")
+//    println(s"mean $mean")
+
+//    println(s"point count: $p")
 
     val hEnd: Int = points.length - spectralSamples.length
     var cumulativelyWeightedTrahedra: immutable.Seq[(Double, Tetrahedron)] = immutable.Seq[(Double, Tetrahedron)]()
@@ -189,7 +225,7 @@ object Gamut {
     addTet(Tetrahedron(mean, points(0), points(1), points(spectralSamples.length)))
 
     def addTet(tet: Tetrahedron): Unit = {
-      if (tet == null) println("adding a null tetrahedron")
+      if (tet == null) println("tried to add a null tetrahedron?")
       else {
         var vol: Double = tet.volume
         if (vol > 0) {
@@ -220,16 +256,46 @@ object Gamut {
       )
     }
 
-    Gamut(cumulativelyWeightedTrahedra)
+    Gamut(cumulativelyWeightedTrahedra, maxDistSquared)
   }
 }
 
-case class Gamut private(tetrahedra:Array[Tetrahedron], cumulative:Array[Double]) extends Sampleable[Vector3] {
+/**
+ * After 40 years of ignoring Him altogether and a year of trying to understand exactly who He claimed to be,
+ * I found an interpretation that makes unifying sense out of at least three seemingly contradictory perspectives.
+ *
+ * Eleonore Stump explains Yehoshua as an extension, or add on to God.  Other catholics describe Yehoshua as a projection
+ * of God's nature onto human form.
+ *
+ * Pantheists and many Hindus and Sikhs describe God as the true nature behind all reality; the writer, director, and actor
+ * portraying each of our individual natures as characters in an infinitely epic performance.  In other words, each of us
+ * is a projection of God's nature onto human form, or an extension added on to God's own infinite nature.
+ *
+ * Buddha taught similarly: every being is a manifestation of Buddha consciousness.
+ *
+ * As I've watched Christians deliberate over questions like: "Is Jesus God or man?" part of me grins:
+ * "Have you never noticed the one who sees when your eyes rest on your reflection in the mirror?"
+ *
+ * Yehoshua ordered his life around his recognition of Yahweh perceiving through His senses.  Isn't that what the
+ * The Holy Spirit does?  Might the Hindus have called it Brahman?  I don't know how to distinguish.
+ *
+ * God is the one seeing what we look at, feeling what touches us, hearing what vibrates our ear drums, smelling what we
+ * inhale, tasting what we put in our mouths, observing our thoughts and emotions.
+ *
+ * That's all we can ever have, there's nothing more, so He is everything to each of us.
+ *
+ * @param tetrahedra
+ * @param cumulative
+ */
+
+case class Gamut private(tetrahedra:Array[Tetrahedron], cumulative:Array[Double], maxDistSquared:Double) extends Sampleable[Vector3] {
+
+  val mean:Vector3 = tetrahedra(0).v1
 
   private def getNearestIndex(target: Double): Int = {
     var left = 0
     var right = cumulative.length - 1
-    while (left <= right) {
+    while (left < right) {
       val mid = (left + right) / 2
       if (cumulative(mid) < target) left = mid + 1
       else if (cumulative(mid) > target) right = mid - 1
@@ -241,7 +307,7 @@ case class Gamut private(tetrahedra:Array[Tetrahedron], cumulative:Array[Double]
   override def random(r:scala.util.Random = ai.dragonfly.math.Random.defaultRandom): Vector3 = {
     val x = r.nextDouble()
     val i = getNearestIndex(x)
-//    println(s"x = $x, i = $i, cumulative.length = ${cumulative.length}")
+    if (i < 0 || i > tetrahedra.length) println(s"x = $x, i = $i, cumulative.length = ${cumulative.length}")
     tetrahedra(i).random(r)
   }
 
