@@ -48,6 +48,6 @@ case class ChromaticityPrimaries(red: ChromaticityPrimary, green: ChromaticityPr
   lazy val xyzXrgbInv:Matrix = new Matrix(raw()).inverse()
 
   def getM(illuminant: Illuminant):Matrix = {
-    new Matrix(raw((xyzXrgbInv * illuminant.vector.asColumnMatrix).getRowPackedCopy()))
+    new Matrix(raw((xyzXrgbInv * illuminant.asColumnMatrix).getRowPackedCopy()))
   }
 }

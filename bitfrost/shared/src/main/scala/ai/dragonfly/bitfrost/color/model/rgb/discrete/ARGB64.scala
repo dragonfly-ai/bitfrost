@@ -3,13 +3,11 @@ package ai.dragonfly.bitfrost.color.model.rgb.discrete
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
-import ai.dragonfly.bitfrost.color.space.*
 import ai.dragonfly.math.{Random, squareInPlace}
 
 import scala.language.implicitConversions
 
-trait ARGB64 extends ColorContext {
-  self: WorkingSpace =>
+trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
 
   given Conversion[Long, ARGB64] with
     def apply(argb: Long): ARGB64 = ARGB64(argb)
@@ -88,12 +86,16 @@ trait ARGB64 extends ColorContext {
 
     inline def clamp(red: Double, green: Double, blue: Double): Long = clamp(MAX, red, green, blue)
 
-    def fromRGB(rgb: RGB): ARGB64 = clamp(rgb.red * MAX, rgb.green * MAX, rgb.blue * MAX)
+    override def fromXYZ(xyz: XYZ): ARGB64 = fromRGB(xyz.toRGB)
 
-    override def weightedAverage(c1: ARGB64, w1: Double, c2: ARGB64, w2: Double): ARGB64 = {
-      ARGB64.fromRGB(RGB.weightedAverage(c1.toRGB, w1, c2.toRGB, w2))
-    }
+    override def fromRGB(rgb: RGB): ARGB64 = clamp(rgb.red * MAX, rgb.green * MAX, rgb.blue * MAX)
 
+    override def weightedAverage(c1: ARGB64, w1: Double, c2: ARGB64, w2: Double): ARGB64 = ARGB64(
+      (((c1.alpha * w1) + (c2.alpha * w2)) / 2.0).toInt,
+      (((c1.red * w1) + (c2.red * w2)) / 2.0).toInt,
+      (((c1.green * w1) + (c2.green * w2)) / 2.0).toInt,
+      (((c1.blue * w1) + (c2.blue * w2)) / 2.0).toInt
+    )
 
     /**
      * Use Color.random() to obtain a random color in the form of an ARGB64 instance.
@@ -144,7 +146,7 @@ trait ARGB64 extends ColorContext {
      */
     inline def blue: Int = (argb & 0xFFFFL).toInt
 
-    inline def toRGB: RGB = {
+    override def toRGB: RGB = {
       import ARGB64.MAXD
       RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
     }

@@ -3,18 +3,13 @@ package ai.dragonfly.bitfrost.color.model.perceptual
 import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.cie.Constant.*
-import ai.dragonfly.bitfrost.color.model.PerceptualColorModel
-import ai.dragonfly.bitfrost.color.space.{Gamut, PerceptualColorSpace, XYZ}
 import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
 import ai.dragonfly.math.{Random, cubeInPlace}
 
-trait Lab extends ColorContext {
-  self: WorkingSpace =>
+trait Lab { self: WorkingSpace =>
 
-  object Lab extends PerceptualColorSpace[Lab] {
-
-    override def ill: Illuminant = illuminant
+  object Lab extends LStarSpace[Lab] {
 
     def apply(values: VectorValues): Lab = new Lab(dimensionCheck(values, 3))
 
@@ -37,22 +32,20 @@ trait Lab extends ColorContext {
      * @return
      */
     def fromXYZ(xyz: XYZ): Lab = {
-      val fy: Double = f(ill.`1/yₙ` * xyz.y)
+      val fy: Double = f(illuminant.`1/yₙ` * xyz.y)
 
       apply(
         116.0 * fy - 16.0,
-        500.0 * (f(ill.`1/xₙ` * xyz.x) - fy),
-        200.0 * (fy - f(ill.`1/zₙ` * xyz.z))
+        500.0 * (f(illuminant.`1/xₙ` * xyz.x) - fy),
+        200.0 * (fy - f(illuminant.`1/zₙ` * xyz.z))
       )
     }
 
-    override val rgbGamut:Gamut = Gamut.fromRGB(self)(transform = (v:XYZ) => Vector3(fromXYZ(v).values))
+//    override val rgbGamut:Gamut = Gamut.fromRGB(transform = (v:XYZ) => Vector3(fromXYZ(v).values))
 //    override def toString:String = s"${illuminant}L*a*b*"
   }
 
-  private def _toRGB(lab: Lab):RGB = XYZ.toRGB(this)(lab.toXYZ)
-
-  case class Lab private(override val values: VectorValues) extends PerceptualColorModel[Lab] {
+  case class Lab private(override val values: VectorValues) extends LStarModel[Lab] {
     override type VEC = this.type with Lab
 
     override def copy(): VEC = new Lab(VectorValues(L, a, b)).asInstanceOf[VEC]
@@ -65,11 +58,11 @@ trait Lab extends ColorContext {
 
     inline def fInverse(t: Double): Double = if (t > `∛ϵ`) cubeInPlace(t) else (`116/k` * t) - `16/k`
 
-    def toXYZ: Vector3 = {
-      val white: Vector3 = illuminant.vector
+    def toXYZ: XYZ = {
+      val white: XYZ = XYZ(illuminant.whitePointValues)
       val fy: Double = `1/116` * (L + 16.0)
 
-      Vector3(
+      XYZ(
         fInverse((0.002 * a) + fy) * white.x, // X
         (if (L > kϵ) {
           val l = L + 16.0;
@@ -83,7 +76,7 @@ trait Lab extends ColorContext {
       Lab.similarity(this, that)
     }
 
-    override def toRGB:RGB = _toRGB(this)
+    override def toRGB:RGB = toXYZ.toRGB
 
     override def toString: String = s"L*a*b*($L,$a,$b)"
   }

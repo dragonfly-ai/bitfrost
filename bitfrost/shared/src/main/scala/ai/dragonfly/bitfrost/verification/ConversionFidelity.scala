@@ -1,7 +1,6 @@
 package ai.dragonfly.bitfrost.verification
 
 import ai.dragonfly.bitfrost.ColorContext
-import ai.dragonfly.bitfrost.color.space.XYZ
 
 object ConversionFidelity extends App {
   for (ctx <- ColorContext.knownContexts) {
@@ -32,8 +31,8 @@ object ConversionFidelity extends App {
             `error(ARGB32<->RGB)` += err
           }
           // ARGB -> RGB -> ARGB
-          val rgba: RGBA32 = c.toRGBA32
-          err = c.similarity(rgba.toARGB32)
+          val rgba: RGBA32 = RGBA32.fromRGB(rgb)
+          err = c.similarity(ARGB32.fromRGB(rgba.toRGB))
           if (err > 0.0) {
             println(s"$c $err")
             `error(ARGB32<->RGBA32)` += err
@@ -65,7 +64,7 @@ object ConversionFidelity extends App {
           }
           // ARGB -> RGB -> XYZ -> RGB -> ARGB
           val xyz = rgb.toXYZ
-          cT = ARGB32.fromRGB(XYZ.toRGB(ctx)(xyz))
+          cT = ARGB32.fromRGB(RGB.fromXYZ(xyz))
           err = c.similarity(cT)
           if (err > 0.0) {
             println(s"$c -> $xyz -> $cT: $err")
@@ -73,7 +72,7 @@ object ConversionFidelity extends App {
           }
           // ARGB -> RGB -> XYZ -> Lab -> XYZ -> RGB -> ARGB
           val lab = Lab.fromXYZ(xyz)
-          cT = ARGB32.fromRGB(XYZ.toRGB(ctx)(lab.toXYZ))
+          cT = ARGB32.fromRGB(RGB.fromXYZ(lab.toXYZ))
           err = c.similarity(cT)
           if (err > 0.0) {
             println(s"$c -> $lab -> $cT: $err")
@@ -81,7 +80,7 @@ object ConversionFidelity extends App {
           }
           // ARGB -> RGB -> XYZ -> Luv -> XYZ -> RGB -> ARGB
           val luv = Luv.fromXYZ(xyz)
-          cT = ARGB32.fromRGB(XYZ.toRGB(ctx)(luv.toXYZ))
+          cT = ARGB32.fromRGB(RGB.fromXYZ(luv.toXYZ))
           err = c.similarity(cT)
           if (err > 0.0) {
             println(s"$c -> $luv -> $cT: $err")

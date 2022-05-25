@@ -1,6 +1,8 @@
 package ai.dragonfly.bitfrost.cie
 
-import ai.dragonfly.math.vector.Vector3
+import Jama.Matrix
+import ai.dragonfly.math.matrix.MatrixValues
+import ai.dragonfly.math.vector.{Vector3, VectorValues}
 
 
 /**
@@ -29,5 +31,12 @@ case class Illuminant(xₙ: Double, val yₙ: Double /* Always 1.0? */, zₙ: Do
   lazy val `1/xₙ`: Double = 1.0 / xₙ
   lazy val `1/zₙ`: Double = 1.0 / zₙ
   lazy val `1/yₙ`: Double = 1.0 / yₙ
-  lazy val vector: Vector3 = Vector3(xₙ, yₙ, zₙ)
+  lazy val whitePointValues: VectorValues = VectorValues(xₙ, yₙ, zₙ)
+  lazy val asColumnMatrix:Matrix = new Matrix(
+    MatrixValues(
+      VectorValues(xₙ),
+      VectorValues(yₙ),
+      VectorValues(zₙ)
+    )
+  )
 }

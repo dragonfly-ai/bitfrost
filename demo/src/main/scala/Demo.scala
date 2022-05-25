@@ -2,7 +2,6 @@
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.ColorContext.sRGB
-import ai.dragonfly.bitfrost.color.space.XYZ
 import ai.dragonfly.math.Random.defaultRandom
 
 import scala.collection.mutable
@@ -36,7 +35,7 @@ object Demo {
         table(
           tr(td("Color"), td("Frequency")),
           cp.colorFrequencies.map {
-            cf => tr(td(backgroundColor := ARGB32.fromRGB(XYZ.toRGB(sRGB)(cf.color.toXYZ)).html())(raw("&nbsp;")), td(cf.frequency))
+            cf => tr(td(backgroundColor := ARGB32.fromRGB(cf.color.toRGB).html())(raw("&nbsp;")), td(cf.frequency))
           }
         )
       ),
@@ -49,8 +48,8 @@ object Demo {
             val lab: Lab = Lab.random()
             val m: Lab = cp.nearestMatch(lab).color
             tr(
-              td(backgroundColor := ARGB32.fromRGB(XYZ.toRGB(sRGB)(lab.toXYZ)).html())(raw("&nbsp;")),
-              td(backgroundColor := ARGB32.fromRGB(XYZ.toRGB(sRGB)(m.toXYZ)).html())(raw("&nbsp;")),
+              td(backgroundColor := ARGB32.fromRGB(lab.toRGB).html())(raw("&nbsp;")),
+              td(backgroundColor := ARGB32.fromRGB(m.toRGB).html())(raw("&nbsp;")),
               td(lab.similarity(m))
             )
           })

@@ -2,18 +2,15 @@ package ai.dragonfly.bitfrost.color.model.huesat
 
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.color.model.{CylindricalColorModel, VectorColorModel}
-import ai.dragonfly.bitfrost.color.space.{CylindricalColorSpace, VectorColorSpace}
+import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 
-trait HSV extends ColorContext {
-  self: WorkingSpace =>
+trait HSV extends HueSaturation { self: WorkingSpace =>
 
   object HSV extends HueSaturationSpace[HSV] {
 
     def apply(values: VectorValues): HSV = new HSV(dimensionCheck(values, 3))
-
 
     def clamp(values: VectorValues): HSV = {
       dimensionCheck(values, 3)
@@ -85,7 +82,7 @@ trait HSV extends ColorContext {
 
   }
 
-  case class HSV private(override val values: VectorValues) extends HueSaturationModel[HSV] {
+  case class HSV private(override val values: VectorValues) extends HueSaturation[HSV] {
 
     inline def hue: Double = values(0)
 

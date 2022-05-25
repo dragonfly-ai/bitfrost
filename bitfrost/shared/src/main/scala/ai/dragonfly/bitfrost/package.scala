@@ -31,10 +31,6 @@ package object bitfrost {
     }
   }
 
-  trait ColorContext {
-
-  }
-
   trait ProvidedColorContexts extends WorkingSpace
     with rgb.RGB
     with rgb.discrete.ARGB32
@@ -55,8 +51,23 @@ package object bitfrost {
     import Illuminant.*
 
     val knownContexts:Array[ProvidedColorContexts] = Array[ProvidedColorContexts](
-      Adobe_RGB_1998, Apple_RGB, Best_RGB, Beta_RGB, Bruce_RGB, CIE_RGB, ColorMatch_RGB, Don_RGB_4, ECI_RGB_v2,
-      Ekta_Space_PS5, NTSC_RGB, PAL_RGB, ProPhoto_RGB, SMPTE_Minus_C_RGB, sRGB, Wide_Gamut_RGB, P3_D65_Display
+      Adobe_RGB_1998,
+       Apple_RGB,
+       Best_RGB,
+       Beta_RGB,
+       Bruce_RGB,
+       CIE_RGB,
+       ColorMatch_RGB,
+       Don_RGB_4,
+       ECI_RGB_v2,
+       Ekta_Space_PS5,
+       NTSC_RGB,
+       PAL_RGB,
+       ProPhoto_RGB,
+       SMPTE_Minus_C_RGB,
+       sRGB,
+       Wide_Gamut_RGB,
+       P3_D65_Display
     )
 
     //Adobe RGB (1998)

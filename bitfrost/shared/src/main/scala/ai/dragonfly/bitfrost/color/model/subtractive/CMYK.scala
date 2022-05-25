@@ -1,16 +1,14 @@
 package ai.dragonfly.bitfrost.color.model.subtractive
 
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.color.model.VectorColorModel
-import ai.dragonfly.bitfrost.color.space.VectorColorSpace
+
 import ai.dragonfly.bitfrost.{ColorContext, NormalizedValue}
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 
-trait CMYK extends ColorContext {
-  self: WorkingSpace =>
+trait CMYK { self: WorkingSpace =>
 
-  object CMYK extends VectorColorSpace[CMYK] with NormalizedValue {
+  object CMYK extends VectorSpace[CMYK] with NormalizedValue {
 
     override val maxDistanceSquared: Double = 4.0
 
@@ -43,6 +41,8 @@ trait CMYK extends ColorContext {
       )
     )
 
+    override def fromXYZ(xyz: XYZ): CMYK = fromRGB(xyz.toRGB)
+
     def fromRGB(rgb: RGB): CMYK = {
       val K = 1.0 - Math.max(rgb.red, Math.max(rgb.green, rgb.blue))
       val kInv = 1.0 - K
@@ -73,7 +73,7 @@ trait CMYK extends ColorContext {
    * }}}
    */
 
-  case class CMYK private(override val values: VectorValues) extends VectorColorModel[CMYK] {
+  case class CMYK private(override val values: VectorValues) extends VectorModel[CMYK] {
     override type VEC = this.type with CMYK
 
     inline def cyan: Double = values(0)
@@ -84,7 +84,9 @@ trait CMYK extends ColorContext {
 
     inline def black: Double = values(3)
 
-    def toRGB: RGB = RGB(
+    override def toXYZ: XYZ = toRGB.toXYZ
+
+    override def toRGB: RGB = RGB.apply(
       RGB.clamp0to1(
         (1.0 - cyan) * (1.0 - black),
         (1.0 - magenta) * (1.0 - black),

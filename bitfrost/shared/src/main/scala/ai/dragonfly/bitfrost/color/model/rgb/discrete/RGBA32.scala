@@ -3,13 +3,11 @@ package ai.dragonfly.bitfrost.color.model.rgb.discrete
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
-import ai.dragonfly.bitfrost.color.space.*
 import ai.dragonfly.math.{Random, squareInPlace}
 
 import scala.language.implicitConversions
 
-trait RGBA32 extends ColorContext {
-  self: WorkingSpace =>
+trait RGBA32 extends DiscreteRGB { self: WorkingSpace =>
 
   given Conversion[java.awt.Color, RGBA32] with
     def apply(jac: java.awt.Color): RGBA32 = RGBA32(jac.getRGB() << 24 | jac.getAlpha())
@@ -94,11 +92,16 @@ trait RGBA32 extends ColorContext {
       else None
     }
 
-    override def weightedAverage(c1: RGBA32, w1: Double, c2: RGBA32, w2: Double): RGBA32 = {
-      fromRGB(RGB.weightedAverage(RGB(c1), w1, RGB(c2), w2))
-    }
+    override def weightedAverage(c1: RGBA32, w1: Double, c2: RGBA32, w2: Double): RGBA32 = RGBA32(
+      (((c1.red * w1) + (c2.red * w2)) / 2.0).toInt,
+      (((c1.green * w1) + (c2.green * w2)) / 2.0).toInt,
+      (((c1.blue * w1) + (c2.blue * w2)) / 2.0).toInt,
+      (((c1.alpha * w1) + (c2.alpha * w2)) / 2.0).toInt
+    )
 
-    def fromRGB(rgb: RGB): RGBA32 = apply(clamp(rgb.red * MAX, rgb.green * MAX, rgb.blue * MAX))
+    override def fromXYZ(xyz: XYZ): RGBA32 = fromRGB(xyz.toRGB)
+
+    override def fromRGB(rgb: RGB): RGBA32 = apply(clamp(rgb.red * MAX, rgb.green * MAX, rgb.blue * MAX))
 
     /**
      * Generate an RGBA32 instance from a single value.  This method validates the intensity parameter at some cost to performance.
@@ -162,11 +165,9 @@ trait RGBA32 extends ColorContext {
      */
     inline def alpha: Int = rgba & 0xff
 
-    inline def toRGB: RGB = {
-      RGB(this)
-    }
+    override def toRGB: RGB = RGB(`1/255` * red, `1/255` * green, `1/255` * blue)
 
-    inline def toARGB32: ARGB32 = ARGB32(alpha, red, green, blue)
+//    inline def toARGB32: ARGB32 = ARGB32(alpha, red, green, blue)
 
     override def similarity(that: RGBA32): Double = Math.sqrt(
       squareInPlace(red - that.red) +
