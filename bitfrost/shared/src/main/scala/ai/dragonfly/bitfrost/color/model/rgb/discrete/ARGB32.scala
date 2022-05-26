@@ -169,11 +169,7 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
       RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
     }
 
-    override def similarity(that: ARGB32): Double = Math.sqrt(
-      squareInPlace(red - that.red) +
-        squareInPlace(green - that.green) +
-        squareInPlace(blue - that.blue)
-    )
+    override def similarity(that: ARGB32): Double = ARGB32.similarity(this, that)
 
     /**
      * @return the hashcode.  For all color types, the hashcode function returns the same result as argb

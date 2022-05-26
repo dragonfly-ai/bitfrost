@@ -72,6 +72,7 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
    */
 
   trait Space[C <: Model[C]](using ctx:WorkingSpace) extends Sampleable[C] {
+    type COLOR = C
     /**
      * Computes a weighted average of two colors in C color space.
      * @param c1 the first color.

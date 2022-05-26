@@ -16,46 +16,50 @@ object Demo {
   val r:Random = defaultRandom
 
   def main(args: Array[String]): Unit = {
-
     import sRGB.*
 
-    // generate random color palette
-    val colors:mutable.HashSet[Lab] = mutable.HashSet[Lab]()
-    while (colors.size < 10) {
-      val c:Lab = Lab.random()
-      if (!colors.contains(c)) colors.add(c)
-    }
+    val commonSpaces: Seq[Space[_]] = Seq[Space[_]](RGB, ARGB32, ARGB64, RGBA32, RGBA64, CMYK, HSL, HSV, XYZ, Lab, Luv)
 
-    val cp = ColorPalette[Lab]( immutable.HashMap.from[Lab, Int](colors.map { _ -> r.nextInt(1000) }) )
+    for (space <- commonSpaces) {
+      type C = space.COLOR
+      // generate random color palette
+      val colors: mutable.HashSet[C] = mutable.HashSet[C]()
+      while (colors.size < 20) {
+        val c: C = space.random().asInstanceOf[C]
+        if (!colors.contains(c)) colors.add(c)
+      }
 
-    val content = div(
-      div(
-        "Random Color Palette:",
-        br,
-        table(
-          tr(td("Color"), td("Frequency")),
-          cp.colorFrequencies.map {
-            cf => tr(td(backgroundColor := ARGB32.fromRGB(cf.color.toRGB).html())(raw("&nbsp;")), td(cf.frequency))
-          }
-        )
-      ),
-      div(
-        "Generate random colors and search palette for nearest match:",
-        br,
-        table(
-          tr(td("Random Color"), td("Nearest Match from Palette"), td("Distance in L*a*b* Space")),
-          (1 to 100).map( _ => {
-            val lab: Lab = Lab.random()
-            val m: Lab = cp.nearestMatch(lab).color
-            tr(
-              td(backgroundColor := ARGB32.fromRGB(lab.toRGB).html())(raw("&nbsp;")),
-              td(backgroundColor := ARGB32.fromRGB(m.toRGB).html())(raw("&nbsp;")),
-              td(lab.similarity(m))
-            )
-          })
+      val cp = ColorPalette[C](immutable.HashMap.from[C, Int](colors.map {_ -> r.nextInt(1000)}))
+
+      val content = div(
+        div(
+          s"Random Color Palette from $space space:",
+          br,
+          table(
+            tr(td("Color"), td("Frequency")),
+            cp.colorFrequencies.map {
+              cf => tr(td(backgroundColor := ARGB32.fromRGB(cf.color.toRGB.asInstanceOf[sRGB.RGB]).html())(raw("&nbsp;")), td(f"${cf.frequency}%.3f%%"))
+            }
+          )
+        ),
+        div(
+          "Generate random colors and search palette for nearest match:",
+          br,
+          table(
+            tr(td("Random Color"), td("Nearest Match from Palette"), td(s"Distance in $space Space")),
+            (1 to 10).map(_ => {
+              val qc: C = space.random().asInstanceOf[C]
+              val m: C = cp.nearestMatch(qc).color
+              tr(
+                td(backgroundColor := ARGB32.fromRGB(qc.toRGB.asInstanceOf[sRGB.RGB]).html())(raw("&nbsp;")),
+                td(backgroundColor := ARGB32.fromRGB(m.toRGB.asInstanceOf[sRGB.RGB]).html())(raw("&nbsp;")),
+                td(f"${qc.similarity(m)}%.3f%%")
+              )
+            })
+          )
         )
       )
-    )
-    println(content)
+      println(content)
+    }
   }
 }

@@ -147,16 +147,12 @@ trait RGBA64 extends DiscreteRGB { self: WorkingSpace =>
      */
     inline def alpha: Int = (rgba & 0xFFFFL).toInt
 
-    inline def toRGB: RGB = {
+    override def toRGB: RGB = {
       import RGBA64.MAXD
       RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
     }
 
-    override def similarity(that: RGBA64): Double = Math.sqrt(
-      squareInPlace(red - that.red) +
-        squareInPlace(green - that.green) +
-        squareInPlace(blue - that.blue)
-    )
+    override def similarity(that: RGBA64): Double = RGBA64.similarity(this, that)
 
     /**
      * @return true if these colors are equal in RGBA space, false otherwise

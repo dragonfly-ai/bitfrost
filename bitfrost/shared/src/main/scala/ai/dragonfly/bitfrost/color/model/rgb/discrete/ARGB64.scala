@@ -151,11 +151,7 @@ trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
       RGB(red.toDouble / MAXD, green.toDouble / MAXD, blue.toDouble / MAXD)
     }
 
-    override def similarity(that: ARGB64): Double = Math.sqrt(
-      squareInPlace(red - that.red) +
-        squareInPlace(green - that.green) +
-        squareInPlace(blue - that.blue)
-    )
+    override def similarity(that: ARGB64): Double = ARGB64.similarity(this, that)
 
     /**
      * @return true if these colors are equal in ARGB64 space, false otherwise

@@ -3,7 +3,7 @@ package ai.dragonfly.bitfrost.color.model.huesat
 import ai.dragonfly.bitfrost.NormalizedValue
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
-import ai.dragonfly.math.squareInPlace
+import ai.dragonfly.math.{degreesToRadians, squareInPlace}
 import ai.dragonfly.math.vector.*
 
 trait HueSaturation { self: WorkingSpace =>
@@ -45,14 +45,14 @@ trait HueSaturation { self: WorkingSpace =>
     }
 
     def asVector3(c: C): Vector3 = Vector3(
-      c.values(1) * Math.cos(c.values(0)),
-      c.values(1) * Math.sin(c.values(0)),
+      c.values(1) * Math.cos(degreesToRadians(c.values(0))),
+      c.values(1) * Math.sin(degreesToRadians(c.values(0))),
       c.values(2)
     )
 
     override val maxDistanceSquared: Double = 6.0
 
-    override def similarity(c1: C, c2: C): Double = asVector3(c1).euclid.distanceSquaredTo(asVector3(c2)) / maxDistanceSquared
+    override def similarity(c1: C, c2: C): Double = 1.0 - Math.sqrt(asVector3(c1).euclid.distanceSquaredTo(asVector3(c2)) / maxDistanceSquared)
 
     override def weightedAverage(c1: C, w1: Double, c2: C, w2: Double): C = {
       val avg: Vector3 = (asVector3(c1) * w1) + (asVector3(c2) * w2)

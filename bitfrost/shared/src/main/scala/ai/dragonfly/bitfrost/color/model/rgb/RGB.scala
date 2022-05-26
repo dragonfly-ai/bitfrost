@@ -19,7 +19,7 @@ trait RGB { self: WorkingSpace =>
 
   object RGB extends VectorSpace[RGB] with NormalizedValue {
 
-    override val maxDistanceSquared: Double = 3.0
+    override val maxDistanceSquared: Double = 9.0
 
     def apply(values: VectorValues): RGB = new RGB(dimensionCheck(values, 3))
 
@@ -109,7 +109,7 @@ trait RGB { self: WorkingSpace =>
 
     override def similarity(that: RGB): Double = RGB.similarity(this, that)
 
-    inline def toRGB: RGB = this
+    override def toRGB: RGB = RGB(red, green, blue)
   }
 
 }

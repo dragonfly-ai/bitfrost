@@ -17,18 +17,19 @@ trait DiscreteRGB {
     def green: Int
 
     def blue: Int
+
   }
 
 
   trait UtilDiscreteRGB[C <: DiscreteRGB[C]] extends DiscreteSpace[C] {
-    val min: Int
+    val min: Int = 0
     val MAX: Int
-    val MAXD: Double
+    lazy val MAXD: Double = MAX.toDouble
 
-    override val maxDistanceSquared: Double = 3 * ai.dragonfly.math.squareInPlace(MAXD)
+    override lazy val maxDistanceSquared: Double = 3 * squareInPlace(MAXD)
 
     override def similarity(c1: C, c2: C): Double = {
-      (squareInPlace(c1.red - c2.red) + squareInPlace(c1.green - c2.green) + squareInPlace(c1.blue - c2.blue)) / maxDistanceSquared
+      1.0 - Math.sqrt((squareInPlace(c1.red - c2.red) + squareInPlace(c1.green - c2.green) + squareInPlace(c1.blue - c2.blue)) / maxDistanceSquared)
     }
 
     inline def valid(intensity: Int): Boolean = intensity >= min && intensity <= MAX
@@ -51,7 +52,7 @@ trait DiscreteRGB {
     lazy val Black: C = apply(0, 0, 0)
     lazy val White: C = apply(MAX, MAX, MAX)
     lazy val Gray: C = gray(MAX / 2)
-    lazy val DargGray: C = gray(MAX / 4)
+    lazy val DarkGray: C = gray(MAX / 4)
     lazy val LightGray: C = gray((3 * MAX) / 4)
 
     // abstract
@@ -62,9 +63,7 @@ trait DiscreteRGB {
 
 
   trait UtilRGB32[C <: DiscreteRGB[C]] extends UtilDiscreteRGB[C] {
-    override val min: Int = 0
     override val MAX: Int = 255
-    override val MAXD: Double = 255.0
 
     inline def clamp(intensity: Double): Int = Math.round(Math.max(0.0, Math.min(MAX, intensity))).toInt
 
@@ -78,9 +77,7 @@ trait DiscreteRGB {
 
 
   trait UtilDiscreteRGB64[C <: DiscreteRGB[C]] extends UtilDiscreteRGB[C] {
-    override val min: Int = 0
     override val MAX: Int = 65535
-    override val MAXD: Double = 65535.0
 
     inline def clamp(intensity: Double): Long = Math.round(Math.max(0.0, Math.min(MAX, intensity)))
 
