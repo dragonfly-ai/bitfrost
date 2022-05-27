@@ -251,7 +251,7 @@ trait Gamut { self: WorkingSpace =>
     }
 
 
-    def writePLY(gamut: Gamut, transform: XYZ => ai.dragonfly.bitfrost.ColorContext.sRGB.ARGB32, out: java.io.OutputStream): Unit = {
+    def writePLY(gamut: Gamut, transform: Vector3 => ai.dragonfly.bitfrost.ColorContext.sRGB.ARGB32, out: java.io.OutputStream): Unit = {
       val sout: PrintWriter = new PrintWriter(out)
 
       sout.write(
@@ -274,8 +274,9 @@ end_header
       )
 
       def writeVertex(v: Vector3): Unit = {
-        val c: ai.dragonfly.bitfrost.ColorContext.sRGB.ARGB32 = transform(XYZ(v.values))
-        sout.write(s"${v.x} ${v.y} ${v.z} ${c.red} ${c.green} ${c.blue} 255\n")
+        val c: ai.dragonfly.bitfrost.ColorContext.sRGB.ARGB32 = transform(v)
+        // y and z swapped for blender and three.js
+        sout.write(s"${v.z} ${v.y} ${v.x} ${c.red} ${c.green} ${c.blue} 255\n")
       }
 
       var vi: Int = 0

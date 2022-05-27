@@ -22,25 +22,26 @@ object ColorSpaceNoise extends App {
   for (context <- contexts) {
     import context.*
 
-    def noisyImage(space:Space[_], transform: XYZ => ColorContext.sRGB.ARGB32):Unit = {
+    def noisyImage(space:Space[_], transform: Vector3 => ColorContext.sRGB.ARGB32):Unit = {
 
       for (y <- 0 until h) {
         for (x <- 0 until w) {
-          bi.setRGB(x, y, transform(space.random().asInstanceOf[Model[_]].toXYZ).argb)
+          bi.setRGB(x, y, transform(Vector3(space.random().asInstanceOf[Model[_]].toXYZ.values)).argb)
         }
       }
+
       println(s"Writing ./demo/image/$context$space.png")
       ImageIO.write(bi, "PNG", new File(s"./demo/image/$context$space.png"))
     }
 
-    val XYZtoARGB32:XYZ => ColorContext.sRGB.ARGB32 = {
+    val XYZtoARGB32:Vector3 => ColorContext.sRGB.ARGB32 = {
       import ColorContext.sRGB
       if (context == sRGB.ARGB32) {
-        (xyz: XYZ) => ARGB32.fromXYZ(xyz).asInstanceOf[sRGB.ARGB32]
+        (v: Vector3) => sRGB.ARGB32.fromXYZ(sRGB.XYZ(v.values)).asInstanceOf[sRGB.ARGB32]
       } else {
         val chromaticAdapter: ChromaticAdaptation[context.type, sRGB.type] = ChromaticAdaptation[context.type, sRGB.type](context, sRGB)
-        (xyz: XYZ) => {
-          sRGB.ARGB32.fromXYZ(chromaticAdapter(xyz))
+        (v: Vector3) => {
+          sRGB.ARGB32.fromXYZ(chromaticAdapter(XYZ(v.values)))
         }
       }
     }
@@ -66,7 +67,7 @@ object ColorSpaceNoise extends App {
 
     for (space <- perceptualSpaces) {
 
-      val spaceToARGB32:Model[_] => ColorContext.sRGB.ARGB32 = (c: Model[_]) => XYZtoARGB32(c.toXYZ)
+      val spaceToARGB32:Vector3 => ColorContext.sRGB.ARGB32 = (v:Vector3) => XYZtoARGB32(Vector3(space(v.values).toXYZ.values))
 
       val os:java.io.OutputStream = new java.io.FileOutputStream( new File(s"./demo/ply/$context$space.ply") )
       Gamut.writePLY(

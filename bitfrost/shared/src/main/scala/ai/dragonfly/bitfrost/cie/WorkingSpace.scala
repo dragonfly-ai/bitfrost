@@ -168,8 +168,6 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
   }
 
-  //println("defined space traits")
-
-
+  override def toString: String = this.getClass.getSimpleName.replace('$', '_')
 
 }
