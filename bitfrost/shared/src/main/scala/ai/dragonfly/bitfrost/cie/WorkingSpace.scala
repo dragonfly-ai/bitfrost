@@ -12,7 +12,7 @@ import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.bitfrost.color.model.perceptual.XYZ
 import ai.dragonfly.bitfrost.color.model.rgb.discrete.{ARGB32, RGBA32}
 import ai.dragonfly.bitfrost.color.model.rgb.RGB
-import ai.dragonfly.bitfrost.color.spectral.{DEFAULT, Sample, SampleSet}
+import ai.dragonfly.bitfrost.color.spectral.*
 import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
 import ai.dragonfly.math.stats.probability.distributions.stream.StreamingVectorStats
@@ -24,11 +24,11 @@ import scala.util.Random
 
 trait WorkingSpace extends XYZ with RGB with Gamut {
 
-  //println("initializing WorkingSpace")
-
   val transferFunction: TransferFunction
   val primaries: ChromaticityPrimaries
   val illuminant: Illuminant
+
+  val cmf: SampleSet = DEFAULT
 
   lazy val whitePoint:XYZ = XYZ(illuminant.whitePointValues)
 
@@ -142,7 +142,7 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
   trait LStarSpace[C <: PerceptualModel[C]] extends PerceptualSpace[C] {
     lazy val fullGamut:Gamut = Gamut.fromSpectralSamples(
-      DEFAULT,
+      cmf,
       (v:Vector3) => {
         Vector3(
           fromXYZ(

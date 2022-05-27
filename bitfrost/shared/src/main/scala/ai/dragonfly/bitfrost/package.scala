@@ -6,6 +6,7 @@ import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.bitfrost.color.model.huesat.{HSL, HSV}
 import ai.dragonfly.bitfrost.color.model.perceptual.{Lab, Luv}
 import ai.dragonfly.bitfrost.color.model.subtractive.CMYK
+import ai.dragonfly.bitfrost.color.spectral.{DEFAULT, SampleSet}
 import ai.dragonfly.math
 import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.matrix.*
@@ -49,23 +50,23 @@ package object bitfrost {
     import Illuminant.*
 
     val knownContexts:Array[ProvidedColorContexts] = Array[ProvidedColorContexts](
-//      Adobe_RGB_1998,
-//       Apple_RGB,
-//       Best_RGB,
-//       Beta_RGB,
-//       Bruce_RGB,
-//       CIE_RGB,
-//       ColorMatch_RGB,
-//       Don_RGB_4,
-//       ECI_RGB_v2,
-//       Ekta_Space_PS5,
-//       NTSC_RGB,
-//       PAL_RGB,
-//       ProPhoto_RGB,
-//       SMPTE_Minus_C_RGB,
-       sRGB,
-//       Wide_Gamut_RGB,
-//       P3_D65_Display
+      Adobe_RGB_1998,
+      Apple_RGB,
+      Best_RGB,
+      Beta_RGB,
+      Bruce_RGB,  // included as a gesture of gratitude to Bruce Lindenbloom who's work inspired this library and made it possible.
+      CIE_RGB,
+      ColorMatch_RGB,
+      Don_RGB_4,
+      ECI_RGB_v2,
+      Ekta_Space_PS5,
+      NTSC_RGB,
+      PAL_RGB,
+      ProPhoto_RGB,
+      SMPTE_Minus_C_RGB,
+      sRGB,
+      Wide_Gamut_RGB,
+      P3_D65_Display
     )
 
     //Adobe RGB (1998)
@@ -372,7 +373,6 @@ package object bitfrost {
       override val transferFunction: TransferFunction = sRGB_ICC_V2
 
       override val illuminant: Illuminant = D65
-
     }
 
   }

@@ -2,9 +2,16 @@ package ai.dragonfly.bitfrost.color.spectral
 
 import ai.dragonfly.math.vector.Vector3
 
-object DEFAULT extends SampleSet {
+/**
+ * CIE 2006 CMF data revised for bitfrost.
+ * These data consist primarily of the 5 nano meter wavelength step data.
+ * It also includes extrema from 0.1 nano meter wavelength step data substituted for its nearest 5 nano meter wavelength.
+ * 5 nano meter wavelength steps
+ * Source: http://www.cvrl.org/cmfs.htm
+ */
+
+object HYBRID_CIE2006_2deg_5nm_WITH_1pm_EXTREMA extends SampleSet {
   override val samples:Array[Sample] = Array[Sample](
-    Sample(380, Vector3(0.0, 0.0, 0.0)),
     Sample(390, Vector3(0.003769647, 0.0004146161, 0.0184726)),
     Sample(395, Vector3(0.009382967, 0.001059646, 0.04609784)),
     Sample(400, Vector3(0.02214302, 0.002452194, 0.109609)),
@@ -39,9 +46,9 @@ object DEFAULT extends SampleSet {
     Sample(540, Vector3(0.3098117, 0.9544675, 0.00984647)),
     Sample(545, Vector3(0.3804244, 0.9814106, 0.006131421)),
     Sample(550, Vector3(0.4494206, 0.9890228, 0.003790291)),
-    //`λ->XYZ`( 555, Vector3(0.5280233, 0.9994608, 0.002327186 ) ),
+    //Sample( 555, Vector3(0.5280233, 0.9994608, 0.002327186 ) ),
     Sample(556.1, Vector3(0.5465651, 1, 0.002090846)),
-    Sample(560, Vector3(0.6133784, 0.9967737, 0.001432128)),
+    //Sample(560, Vector3(0.6133784, 0.9967737, 0.001432128)),
     Sample(565, Vector3(0.7016774, 0.9902549, 0.0008822531)),
     Sample(570, Vector3(0.796775, 0.9732611, 0.0005452416)),
     Sample(575, Vector3(0.8853376, 0.9424569, 0.0003386739)),

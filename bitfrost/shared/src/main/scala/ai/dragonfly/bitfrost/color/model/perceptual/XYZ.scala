@@ -1,7 +1,7 @@
 package ai.dragonfly.bitfrost.color.model.perceptual
 
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.color.spectral.DEFAULT
+import ai.dragonfly.bitfrost.color.spectral.*
 import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
 
 /**
@@ -35,7 +35,7 @@ trait XYZ { self:WorkingSpace =>
     override def fromXYZ(xyz: XYZ): XYZ = apply(xyz.x, xyz.y, xyz.z)
 
     override lazy val fullGamut:Gamut = Gamut.fromSpectralSamples(
-      DEFAULT,
+      cmf,
       (v:Vector3) => Vector3(
         whitePoint.x * v.x,
         whitePoint.y * v.y,

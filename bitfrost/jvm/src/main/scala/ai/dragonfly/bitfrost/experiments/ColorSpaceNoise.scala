@@ -3,7 +3,7 @@ package ai.dragonfly.bitfrost.experiments
 import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.color.model.*
-import ai.dragonfly.bitfrost.color.spectral.{DEFAULT, SampleSet}
+import ai.dragonfly.bitfrost.color.spectral.*
 import ai.dragonfly.math.vector.Vector3
 
 import java.awt.image.BufferedImage
@@ -37,7 +37,7 @@ object ColorSpaceNoise extends App {
     val XYZtoARGB32:Vector3 => ColorContext.sRGB.ARGB32 = {
       import ColorContext.sRGB
       if (context == sRGB.ARGB32) {
-        (v: Vector3) => sRGB.ARGB32.fromXYZ(sRGB.XYZ(v.values)).asInstanceOf[sRGB.ARGB32]
+        (v: Vector3) => sRGB.ARGB32.fromXYZ(sRGB.XYZ(v.values))
       } else {
         val chromaticAdapter: ChromaticAdaptation[context.type, sRGB.type] = ChromaticAdaptation[context.type, sRGB.type](context, sRGB)
         (v: Vector3) => {
@@ -47,7 +47,7 @@ object ColorSpaceNoise extends App {
     }
 
     Gamut.writePLY(
-      Gamut.fromSpectralSamples(DEFAULT, context.illuminant),
+      Gamut.fromSpectralSamples(cmf, context.illuminant),
       XYZtoARGB32,
       new java.io.FileOutputStream( new File(s"./demo/ply/${context}XYZ.ply") )
     )
@@ -55,7 +55,7 @@ object ColorSpaceNoise extends App {
     Gamut.writePLY(
       Gamut.fromRGB(),
       XYZtoARGB32,
-      new java.io.FileOutputStream( new File(s"./demo/ply/${context}RGB->XYZ.ply") )
+      new java.io.FileOutputStream( new File(s"./demo/ply/${context}XYZfromRGB.ply") )
     )
 
     val commonSpaces: Seq[Space[_]] = Seq[Space[_]](ARGB32, CMYK, HSL, HSV)
@@ -83,7 +83,7 @@ object ColorSpaceNoise extends App {
       Gamut.writePLY(
         rgbGamut,
         spaceToARGB32,
-        new java.io.FileOutputStream( new File(s"./demo/ply/${context}_${space}fromRGB.ply") )
+        new java.io.FileOutputStream( new File(s"./demo/ply/${context}${space}fromRGB.ply") )
       )
 
       noisyImage(space, XYZtoARGB32)
