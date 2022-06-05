@@ -3,7 +3,9 @@ package ai.dragonfly.bitfrost.color.model.huesat
 import ai.dragonfly.bitfrost.NormalizedValue
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
-import ai.dragonfly.math.{degreesToRadians, squareInPlace}
+import ai.dragonfly.bitfrost.visualization.VolumeMesh
+import ai.dragonfly.math.{degreesToRadians, radiansToDegrees, squareInPlace}
+import ai.dragonfly.math.Constant.π
 import ai.dragonfly.math.vector.*
 
 trait HueSaturation { self: WorkingSpace =>
@@ -44,11 +46,21 @@ trait HueSaturation { self: WorkingSpace =>
       )
     }
 
-    def asVector3(c: C): Vector3 = Vector3(
+    override def asVector3(c: C): Vector3 = Vector3(
       c.values(1) * Math.cos(degreesToRadians(c.values(0))),
       c.values(1) * Math.sin(degreesToRadians(c.values(0))),
       c.values(2)
     )
+
+    override def fromVector3(v:Vector3): C = {
+      val r:Double = Math.sqrt(squareInPlace(v.x) + squareInPlace(v.y))
+      val θ:Double = π + Math.atan2(v.y, v.x)
+      apply(
+        radiansToDegrees(θ),
+        r,
+        v.z
+      )
+    }
 
     override val maxDistanceSquared: Double = 6.0
 
@@ -67,7 +79,7 @@ trait HueSaturation { self: WorkingSpace =>
       val X = x + m
       val C = c + m
 
-      if (hue < 60.0) clamp0to1(C, X, m) // hue = 360 clamps to 0
+      if (hue < 60.0) clamp0to1(C, X, m) // hue = 0 clamps to 360
       else if (hue < 120.0) clamp0to1(X, C, m)
       else if (hue < 180.0) clamp0to1(m, C, X)
       else if (hue < 240.0) clamp0to1(m, X, C)
@@ -78,5 +90,7 @@ trait HueSaturation { self: WorkingSpace =>
     inline def XfromHueC(H: Double, C: Double): Double = C * (1.0 - Math.abs(((H / 60.0) % 2.0) - 1.0))
 
     override def fromXYZ(xyz: XYZ): C = fromRGB(xyz.toRGB)
+
+
   }
 }

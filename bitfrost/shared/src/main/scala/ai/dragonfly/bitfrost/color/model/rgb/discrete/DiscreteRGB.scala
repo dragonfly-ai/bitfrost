@@ -4,7 +4,9 @@ import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.*
 import ai.dragonfly.bitfrost.color.model.*
+import ai.dragonfly.bitfrost.visualization.VolumeMesh
 import ai.dragonfly.math.squareInPlace
+import ai.dragonfly.math.vector.Vector3
 
 
 
@@ -25,6 +27,8 @@ trait DiscreteRGB {
     val min: Int = 0
     val MAX: Int
     lazy val MAXD: Double = MAX.toDouble
+
+    override lazy val gamut: VolumeMesh = VolumeMesh.cube(MAXD)
 
     override lazy val maxDistanceSquared: Double = 3 * squareInPlace(MAXD)
 
@@ -55,10 +59,15 @@ trait DiscreteRGB {
     lazy val DarkGray: C = gray(MAX / 4)
     lazy val LightGray: C = gray((3 * MAX) / 4)
 
+    override def fromVector3(v: Vector3): C = apply(v.x.toInt, v.y.toInt, v.z.toInt)
+
+    override def asVector3(c: C): Vector3 = Vector3(c.red, c.green, c.blue)
+
     // abstract
     def apply(red: Int, green: Int, blue: Int): C
 
     def apply(c1: Int, c2: Int, c3: Int, c4: Int): C
+
   }
 
 

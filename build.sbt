@@ -8,9 +8,9 @@ lazy val bitfrost = crossProject(JSPlatform, JVMPlatform).settings(
   version := "0.0.01",
   organization := "ai.dragonfly.code",
   resolvers += "dragonfly.ai" at "https://code.dragonfly.ai/",
-  libraryDependencies += "ai.dragonfly.code" %%% "matrix" % "0.331.523",
+  libraryDependencies += "ai.dragonfly.code" %%% "matrix" % "0.331.524",
   scalacOptions ++= Seq("-feature", "-deprecation"),
-  Compile / mainClass := Some("ai.dragonfly.bitfrost.verification.ConversionFidelity"),
+  Compile / mainClass := Some("ai.dragonfly.bitfrost.visualization.TestVolumeMesh"),
   scalaJSUseMainModuleInitializer := true
 ).jsSettings().jsConfigure(_.enablePlugins(ScalaJSBundlerPlugin)).jvmSettings()
 

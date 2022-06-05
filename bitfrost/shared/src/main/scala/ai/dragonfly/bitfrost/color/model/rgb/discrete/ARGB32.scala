@@ -23,6 +23,8 @@ trait ARGB32 extends DiscreteRGB { self: WorkingSpace =>
 
   object ARGB32 extends UtilRGB32[ARGB32] {
 
+    println()
+
     def apply(argb: Int): ARGB32 = new ARGB32(argb)
 
     /**

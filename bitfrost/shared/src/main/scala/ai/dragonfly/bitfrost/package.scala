@@ -5,8 +5,8 @@ import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.bitfrost.color.model.huesat.{HSL, HSV}
 import ai.dragonfly.bitfrost.color.model.perceptual.{Lab, Luv}
-import ai.dragonfly.bitfrost.color.model.subtractive.CMYK
-import ai.dragonfly.bitfrost.color.spectral.{DEFAULT, SampleSet}
+import ai.dragonfly.bitfrost.color.model.subtractive.{CMY, CMYK}
+import ai.dragonfly.bitfrost.color.spectral.*
 import ai.dragonfly.math
 import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.matrix.*
@@ -18,17 +18,17 @@ package object bitfrost {
 
   trait NormalizedValue {
 
-    inline def valid0to1(percentage: Double): Boolean = percentage >= 0.0 && percentage <= 1.0
+    inline def valid0to1(i: Double): Boolean = 0.0 <= i && i <= 1.0
     inline def valid0to1(i0: Double, i1: Double):Boolean = valid0to1(i0) && valid0to1(i1)
     inline def valid0to1(i0: Double, i1: Double, i2: Double):Boolean = valid0to1(i0) && valid0to1(i1) && valid0to1(i2)
     inline def valid0to1(i0: Double, i1: Double, i2: Double, i3: Double):Boolean = valid0to1(i0) && valid0to1(i1) && valid0to1(i2) && valid0to1(i3)
 
-    inline def clamp0to1(percentage: Double): Double = Math.min(1.0, Math.max(0.0, percentage))
-    inline def clamp0to1(v1: Double, v2: Double, v3: Double):VectorValues = {
-      VectorValues(clamp0to1(v1), clamp0to1(v2), clamp0to1(v3))
+    inline def clamp0to1(i: Double): Double = Math.min(1.0, Math.max(0.0, i))
+    inline def clamp0to1(i0: Double, i1: Double, i2: Double):VectorValues = {
+      VectorValues(clamp0to1(i0), clamp0to1(i1), clamp0to1(i2))
     }
-    inline def clamp0to1(v1: Double, v2: Double, v3: Double, v4: Double):VectorValues = {
-      VectorValues(clamp0to1(v1), clamp0to1(v2), clamp0to1(v3), clamp0to1(v4))
+    inline def clamp0to1(i0: Double, i1: Double, i2: Double, i3: Double):VectorValues = {
+      VectorValues(clamp0to1(i0), clamp0to1(i1), clamp0to1(i2), clamp0to1(i3))
     }
   }
 
@@ -38,6 +38,7 @@ package object bitfrost {
     with rgb.discrete.ARGB64
     with rgb.discrete.RGBA32
     with rgb.discrete.RGBA64
+    with CMY
     with CMYK
     with HSL
     with HSV
@@ -63,7 +64,7 @@ package object bitfrost {
       NTSC_RGB,
       PAL_RGB,
       ProPhoto_RGB,
-      SMPTE_Minus_C_RGB,
+      SMPTE_C_RGB,
       sRGB,
       Wide_Gamut_RGB,
       P3_D65_Display
@@ -251,6 +252,7 @@ package object bitfrost {
       ))
     }
 
+    // 1953 NTSC https://en.wikipedia.org/wiki/NTSC#Colorimetry
     object NTSC_RGB extends ProvidedColorContexts {
       override val transferFunction: TransferFunction = Gamma(2.2)
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -266,6 +268,8 @@ package object bitfrost {
         VectorValues(0.295774647887324, 1.0, 0.112676056338028),
         VectorValues(1.75, 1.0, 9.75)
       ))
+
+      override val cmf: SampleSet = CIE1931_2deg_5nm
     }
 
     // PAL/SECAM RGB
@@ -307,8 +311,8 @@ package object bitfrost {
       ))
     }
 
-    // SMPTE-C RGB
-    object SMPTE_Minus_C_RGB extends ProvidedColorContexts {
+    // SMPTE "C" RGB: https://en.wikipedia.org/wiki/NTSC#SMPTE_C
+    object SMPTE_C_RGB extends ProvidedColorContexts {
       override val transferFunction: TransferFunction = Gamma(2.2)
 
       override val primaries: ChromaticityPrimaries = ChromaticityPrimaries(
@@ -324,6 +328,8 @@ package object bitfrost {
         VectorValues(0.521008403361345, 1.0, 0.159663865546218),
         VectorValues(2.21428571428571, 1.0, 11.0714285714286)
       ))
+
+      override val cmf: SampleSet = CIE1931_2deg_5nm
     }
 
     object sRGB extends ProvidedColorContexts {
@@ -342,6 +348,7 @@ package object bitfrost {
         VectorValues(0.5, 1.0, 0.166666666666667),
         VectorValues(2.5, 1.0, 13.1666666666667)
       ))
+      override val cmf: SampleSet = CIE1931_JUDD1951_VOS1978_2deg_5nm
     }
 
     object Wide_Gamut_RGB extends ProvidedColorContexts {

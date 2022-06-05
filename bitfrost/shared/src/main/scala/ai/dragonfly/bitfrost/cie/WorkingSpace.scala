@@ -13,6 +13,7 @@ import ai.dragonfly.bitfrost.color.model.perceptual.XYZ
 import ai.dragonfly.bitfrost.color.model.rgb.discrete.{ARGB32, RGBA32}
 import ai.dragonfly.bitfrost.color.model.rgb.RGB
 import ai.dragonfly.bitfrost.color.spectral.*
+import ai.dragonfly.bitfrost.visualization.VolumeMesh
 import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
 import ai.dragonfly.math.stats.probability.distributions.stream.StreamingVectorStats
@@ -90,7 +91,11 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
     def fromRGB(rgb:RGB):C
     def fromXYZ(xyz:XYZ):C
 
-    // Should every space have gamut volumes?
+    def asVector3(c:C):Vector3
+    def fromVector3(v:Vector3): C
+
+    def gamut:VolumeMesh
+
   }
 
   trait DiscreteSpace[C <: DiscreteModel[C]] extends Space[C] {
@@ -116,6 +121,12 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
     override def similarity(c1: C, c2: C): Double = {
       1.0 - Math.sqrt(c1.euclid.distanceSquaredTo(c2) / maxDistanceSquared)
     }
+
+    def apply(values:VectorValues):C
+
+    override def fromVector3(v: Vector3): C = apply(v.copy().values)
+
+    override def asVector3(c: C): Vector3 = Vector3(c.values)
   }
 
 
@@ -127,44 +138,27 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
     override def fromRGB(rgb: RGB): C = fromXYZ(rgb.toXYZ)
 
-    def fullGamut:Gamut
+    lazy val rgbGamut:Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => Vector3(fromXYZ(xyz).values))
 
-    override lazy val maxDistanceSquared:Double = fullGamut.maxDistSquared
-
-    def rgbGamut:Gamut
+    override lazy val maxDistanceSquared:Double = rgbGamut.maxDistSquared
 
     override def random(r: Random = ai.dragonfly.math.Random.defaultRandom): C = {
       val v = rgbGamut.random(r)
       apply(v.x, v.y, v.z)
     }
 
+    override def gamut: VolumeMesh = rgbGamut.volumeMesh
+
+    def theoreticalGamut:VolumeMesh
+
+    lazy val visibleGamut:Gamut = Gamut(theoreticalGamut)
   }
 
   trait LStarSpace[C <: PerceptualModel[C]] extends PerceptualSpace[C] {
-    lazy val fullGamut:Gamut = Gamut.fromSpectralSamples(
-      cmf,
-      (v:Vector3) => {
-        Vector3(
-          fromXYZ(
-            XYZ(
-              whitePoint.x * v.x,
-              whitePoint.y * v.y,
-              whitePoint.z * v.z
-            )
-          ).values
-        )
-      }
-    )
 
-    override lazy val maxDistanceSquared:Double = fullGamut.maxDistSquared
+    override lazy val theoreticalGamut: VolumeMesh = XYZ.theoreticalGamut.transform((v:Vector3) => asVector3(fromXYZ(XYZ(v.values))))
 
-    override lazy val rgbGamut:Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => Vector3(fromXYZ(xyz).values))
-
-
-    //  override def random(r: Random = ai.dragonfly.math.Random.defaultRandom): C = {
-    //    val v = fullGamut.random(r)
-    //    apply(v.x, v.y, v.z)
-    //  }
+    def randomFromVisibleGamut(r: Random = ai.dragonfly.math.Random.defaultRandom): C = apply(visibleGamut.random(r).values)
 
   }
 

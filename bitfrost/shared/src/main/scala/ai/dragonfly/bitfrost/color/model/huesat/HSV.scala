@@ -3,6 +3,7 @@ package ai.dragonfly.bitfrost.color.model.huesat
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
+import ai.dragonfly.bitfrost.visualization.VolumeMesh
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.vector.{VectorValues, dimensionCheck}
 
@@ -79,6 +80,8 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
         r.nextDouble()
       )
     )
+
+    override def gamut: VolumeMesh = VolumeMesh.cylinder(capSegments = 6)
 
   }
 

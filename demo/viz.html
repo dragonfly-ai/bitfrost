@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gamut Visualization</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+</head>
+<body>
+<div id="gamut" style="position:absolute; top:0px; left:0px;"></div>
+<div ide="form" style="position:absolute; top:0px; left:0px; background:#888888; color:#FFFFFF; padding:12px 12px 0px 12px;">
+<form id="selectGamut" method="get">
+<select id="ws" name="ws">
+  <option value="null">Working Space</option>
+  <option value="Adobe_RGB_1998">Adobe RGB 1998</option>
+  <option value="Apple_RGB">Apple RGB</option>
+  <option value="Best_RGB">Best RGB</option>
+  <option value="Beta_RGB">Beta RGB</option>
+  <option value="Bruce_RGB">Bruce RGB</option>
+  <option value="CIE_RGB">CIE RGB</option>
+  <option value="ColorMatch_RGB">ColorMatch RGB</option>
+  <option value="Don_RGB_4">Don RGB_4</option>
+  <option value="ECI_RGB_v2">ECI RGB_v2</option>
+  <option value="Ekta_Space_PS5">Ekta Space PS5</option>
+  <option value="NTSC_RGB">NTSC RGB</option>
+  <option value="PAL_RGB">PAL RGB</option>
+  <option value="ProPhoto_RGB">ProPhoto RGB</option>
+  <option value="SMPTE_C_RGB">SMPTE C RGB</option>
+  <option value="sRGB">sRGB</option>
+  <option value="Wide_Gamut_RGB">Wide Gamut RGB</option>
+  <option value="P3_D65_Display">P3 D65 Display</option>
+</select>
+<select id="space" name="space">
+  <option value="null">Color Space</option>
+  <option value="XYZ">XYZ</option>
+  <option value="Lab">Lab</option>
+  <option value="Luv">Luv</option>
+  <option value="RGB">RGB</option>
+  <option value="CMY">CMY</option>
+  <option value="CMYK">CMYK</option>
+  <option value="HSL">HSL</option>
+  <option value="HSV">HSV</option>
+</select><input type="submit" value="View"></form></div>
+<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.141.0/build/three.module.js"
+    }
+}
+</script>
+<script type="module">
+
+import * as THREE from 'three';
+
+import { OrbitControls } from 'https://unpkg.com/three@0.141.0/examples/jsm/controls/OrbitControls.js';
+
+import { PLYLoader } from 'https://unpkg.com/three@0.141.0/examples/jsm/loaders/PLYLoader.js';
+
+let container;
+
+let camera, cameraTarget, scene, renderer, controls, scale;
+
+init();
+animate();
+
+
+function init() {
+
+  const scaleMap = {
+      "XYZ" : 0.5,
+      "Lab" : 0.005,
+      "Luv" : 0.005
+  }
+
+  function getScale(modelName) {
+    if (typeof scaleMap[modelName] !== "undefined") {
+      return scaleMap[modelName];
+    } else {
+      return 0.5
+    }
+  }
+
+  function hasCage(modelName) {
+    return typeof scaleMap[modelName] !== "undefined";
+  }
+
+  const urlParams = new URLSearchParams(document.location.search);
+  const ws = urlParams.get('ws');
+  document.querySelector("#ws").value = ws
+  const space = urlParams.get('space');
+  document.querySelector("#space").value = space
+  const visible = './ply/' + ws + "_" + space + ".ply";
+  console.log(visible);
+  const cage = './ply/' + ws + "_" + space + "FullGamut.ply";
+  console.log(cage + " " + hasCage(space));
+  const scale = getScale(space);
+
+  container = document.getElementById( 'gamut' );
+
+  camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 0.5, 99999999 );
+  camera.position.set( 2, 1, 2 );
+
+  cameraTarget = new THREE.Vector3( 0, 0, 0 );
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color( 0x444444 );
+
+/*
+  // Ground
+
+  const plane = new THREE.Mesh(
+      new THREE.PlaneGeometry( 4, 4 ),
+      new THREE.MeshPhongMaterial( { color: 0x999999, specular: 0x101010 } )
+  );
+  plane.rotation.x = - Math.PI / 2;
+  plane.position.y = - 0.5;
+  scene.add( plane );
+
+  plane.receiveShadow = true;
+*/
+
+  let dXZ = 0.0;
+  if (space === "XYZ") dXZ = scale * 0.5;
+  // PLY file
+
+  const loader = new PLYLoader();
+  loader.load( visible, function ( geometry ) {
+
+      geometry.computeVertexNormals();
+
+      geometry.computeBoundingBox();
+      var origin = geometry.boundingBox.getCenter(new THREE.Vector3());
+      console.log(origin);
+      geometry.center();
+
+      geometry.computeBoundingBox();
+      var offset = geometry.boundingBox.getCenter(new THREE.Vector3());
+      offset.sub(origin);
+      console.log(offset);
+
+      const material = new THREE.MeshBasicMaterial( { vertexColors: true } );
+      const mesh = new THREE.Mesh( geometry, material );
+
+      mesh.scale.multiplyScalar( scale );
+
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+
+
+      if (hasCage(space)) {
+        mesh.rotation.z = Math.PI / 2;
+        loader.load( cage, function ( cageGeometry ) {
+
+            cageGeometry.computeVertexNormals();
+            cageGeometry.translate(offset.x, offset.y, offset.z);
+
+            const cageMaterial = new THREE.MeshBasicMaterial( { vertexColors: true, wireframe: true, transparent: true, opacity: 0.05, emissive: 0x444444 } ); //
+            const cageMesh = new THREE.Mesh( cageGeometry, cageMaterial );
+
+            cageMesh.rotation.z = Math.PI / 2;
+            cageMesh.scale.multiplyScalar( scale );
+
+            cageMesh.castShadow = false;
+            cageMesh.receiveShadow = false;
+
+            scene.add( mesh );
+
+            scene.add(cageMesh);
+        } );
+      } else {
+        mesh.rotation.x = -Math.PI / 2;
+        scene.add(mesh);
+      }
+
+      //scene.add( mesh );
+
+  } );
+
+
+
+  // Lights
+  scene.add( new THREE.AmbientLight( 0xffffff ) );
+/*
+  scene.add( new THREE.HemisphereLight( 0xffffff, 0xffffff ) );
+
+  addShadowedLight( 1, 1, 1, 0xffffff, 1.35 );
+  addShadowedLight( 0.5, 1, - 1, 0xffaa00, 1 );
+*/
+  // renderer
+
+  renderer = new THREE.WebGLRenderer( { antialias: true } );
+  renderer.setPixelRatio( window.devicePixelRatio );
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  renderer.outputEncoding = THREE.sRGBEncoding;
+
+  renderer.shadowMap.enabled = false;
+
+  container.appendChild( renderer.domElement );
+
+
+  controls = new OrbitControls( camera, renderer.domElement );
+  controls.target.set( 0, 0, 0 );
+  controls.update();
+  controls.enablePan = false;
+  controls.enableDamping = true;
+
+  // resize
+
+  window.addEventListener( 'resize', onWindowResize );
+
+}
+
+function addShadowedLight( x, y, z, color, intensity ) {
+
+	const directionalLight = new THREE.DirectionalLight( color, intensity );
+	directionalLight.position.set( x, y, z );
+	scene.add( directionalLight );
+
+	directionalLight.castShadow = true;
+
+	const d = 1;
+	directionalLight.shadow.camera.left = - d;
+	directionalLight.shadow.camera.right = d;
+	directionalLight.shadow.camera.top = d;
+	directionalLight.shadow.camera.bottom = - d;
+
+	directionalLight.shadow.camera.near = 1;
+	directionalLight.shadow.camera.far = 4;
+
+	directionalLight.shadow.mapSize.width = 1024;
+	directionalLight.shadow.mapSize.height = 1024;
+
+	directionalLight.shadow.bias = - 0.001;
+
+}
+
+function onWindowResize() {
+
+	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.updateProjectionMatrix();
+
+	renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
+
+function animate() {
+
+	requestAnimationFrame( animate );
+
+	render();
+
+}
+
+function render() {
+
+	//const timer = Date.now() * 0.0005;
+/*
+	camera.position.x = Math.sin( timer ) * 2.5;
+	camera.position.z = Math.cos( timer ) * 2.5;
+*/
+	controls.update();
+
+	//camera.lookAt( cameraTarget );
+
+	renderer.render( scene, camera );
+
+}
+render();
+</script>
+</script>
+</body>
+</html>

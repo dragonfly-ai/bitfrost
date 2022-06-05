@@ -2,9 +2,10 @@ package ai.dragonfly.bitfrost.color.model.rgb
 
 import Jama.Matrix
 import ai.dragonfly.bitfrost.*
-import ai.dragonfly.bitfrost.cie.WorkingSpace
+import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.bitfrost.NormalizedValue
+import ai.dragonfly.bitfrost.visualization.VolumeMesh
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.matrix.MatrixValues
 import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
@@ -42,11 +43,7 @@ trait RGB { self: WorkingSpace =>
 //
 //    def apply(rgba: RGBA32): RGB = apply(`1/255` * rgba.red, `1/255` * rgba.green, `1/255` * rgba.blue)
 
-    override def fromXYZ(xyz:XYZ):RGB = {
-      val temp: VectorValues = (M_inverse * Vector3(xyz.values).asColumnMatrix).getRowPackedCopy()
-      for (i <- temp.indices) temp(i) = transferFunction.encode(temp(i))
-      apply(temp)
-    }
+    override def fromXYZ(xyz:XYZ):RGB = xyz.toRGB
 
     override def fromRGB(rgb: RGB): RGB = apply(rgb.red, rgb.green, rgb.blue)
 
@@ -81,6 +78,8 @@ trait RGB { self: WorkingSpace =>
     override def random(r: scala.util.Random = Random.defaultRandom): RGB = apply(
       VectorValues(r.nextDouble(), r.nextDouble(), r.nextDouble())
     )
+
+    override lazy val gamut: VolumeMesh = VolumeMesh.cube()
 
   }
 

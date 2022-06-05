@@ -1,8 +1,13 @@
 package ai.dragonfly.bitfrost.color.model.perceptual
 
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.color.spectral.*
+import ai.dragonfly.bitfrost.color.spectral.DEFAULT
+import ai.dragonfly.bitfrost.visualization.VolumeMesh
 import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
+import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
+import ai.dragonfly.math.matrix.util.asColumnMatrix
+
+import scala.language.implicitConversions
 
 /**
  * From: https://en.wikipedia.org/wiki/CIE_1931_color_space
@@ -20,6 +25,15 @@ trait XYZ { self:WorkingSpace =>
 
   object XYZ extends PerceptualSpace[XYZ] {
 
+    override lazy val visibleGamut:Gamut = Gamut.fromSpectralSamples(
+      cmf,
+      (v:Vector3) => Vector3(
+        whitePoint.x * v.x,
+        whitePoint.y * v.y,
+        whitePoint.z * v.z
+      )
+    )
+
     def apply(values: VectorValues): XYZ = new XYZ(dimensionCheck(values, 3))
 
     /**
@@ -34,16 +48,7 @@ trait XYZ { self:WorkingSpace =>
 
     override def fromXYZ(xyz: XYZ): XYZ = apply(xyz.x, xyz.y, xyz.z)
 
-    override lazy val fullGamut:Gamut = Gamut.fromSpectralSamples(
-      cmf,
-      (v:Vector3) => Vector3(
-        whitePoint.x * v.x,
-        whitePoint.y * v.y,
-        whitePoint.z * v.z
-      )
-    )
-
-    override lazy val rgbGamut:Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => Vector3(xyz.values))
+    override lazy val theoreticalGamut: VolumeMesh = visibleGamut.volumeMesh
 
   }
 
@@ -63,7 +68,11 @@ trait XYZ { self:WorkingSpace =>
 
     override def toXYZ: XYZ = copy()
 
-    override def toRGB:RGB = RGB.fromXYZ(this)
+    override def toRGB:RGB = {
+      val temp: VectorValues = (M_inverse * Vector3(values).asColumnMatrix).getRowPackedCopy()
+      for (i <- temp.indices) temp(i) = transferFunction.encode(temp(i))
+      RGB(temp)
+    }
 
     override def toString: String = s"XYZ($x,$y,$z)"
   }
