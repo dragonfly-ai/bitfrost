@@ -1,9 +1,10 @@
 package ai.dragonfly.bitfrost.color.model.perceptual
 
+import bridge.array.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.spectral.DEFAULT
 import ai.dragonfly.bitfrost.visualization.VolumeMesh
-import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
+import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
 import ai.dragonfly.math.matrix.util.asColumnMatrix
 
@@ -34,7 +35,7 @@ trait XYZ { self:WorkingSpace =>
       )
     )
 
-    def apply(values: VectorValues): XYZ = new XYZ(dimensionCheck(values, 3))
+    def apply(values: ARRAY[Double]): XYZ = new XYZ(dimensionCheck(values, 3))
 
     /**
      * @param L the L* component of the CIE L*a*b* color.
@@ -44,7 +45,7 @@ trait XYZ { self:WorkingSpace =>
      * @example {{{ val c = LAB(72.872, -0.531, 71.770) }}}
      */
 
-    def apply(x: Double, y: Double, z: Double): XYZ = apply(VectorValues(x, y, z))
+    def apply(x: Double, y: Double, z: Double): XYZ = apply(ARRAY[Double](x, y, z))
 
     override def fromXYZ(xyz: XYZ): XYZ = apply(xyz.x, xyz.y, xyz.z)
 
@@ -53,10 +54,10 @@ trait XYZ { self:WorkingSpace =>
   }
 
 
-  case class XYZ private(override val values: VectorValues) extends PerceptualModel[XYZ] {
+  case class XYZ private(override val values: ARRAY[Double]) extends PerceptualModel[XYZ] {
     override type VEC = this.type with XYZ
 
-    override def copy(): VEC = new XYZ(VectorValues(x, y, z)).asInstanceOf[VEC]
+    override def copy(): VEC = new XYZ(ARRAY[Double](x, y, z)).asInstanceOf[VEC]
 
     inline def x: Double = values(0)
 
@@ -69,7 +70,7 @@ trait XYZ { self:WorkingSpace =>
     override def toXYZ: XYZ = copy()
 
     override def toRGB:RGB = {
-      val temp: VectorValues = (M_inverse * Vector3(values).asColumnMatrix).getRowPackedCopy()
+      val temp: ARRAY[Double] = (M_inverse * Vector3(values).asColumnMatrix).getRowPackedCopy()
       for (i <- temp.indices) temp(i) = transferFunction.encode(temp(i))
       RGB(temp)
     }

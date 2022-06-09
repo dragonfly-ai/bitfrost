@@ -1,6 +1,8 @@
 package ai.dragonfly.bitfrost.visualization
 
-import ai.dragonfly.math.vector.Vector3
+import bridge.array.*
+
+import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.Constant.π
 import ai.dragonfly.math.{cubeInPlace, squareInPlace}
 
@@ -11,12 +13,12 @@ object VolumeMesh {
 
   inline def nonZeroArea(p0:Vector3, p1:Vector3, p2:Vector3): Boolean = (p1 - p0).cross(p2 - p0).magnitudeSquared > 0
 
-  def corners(l:Double): Array[Array[Vector3]] = Array[Array[Vector3]](
-    Array[Vector3]( Vector3(0, 0, 0), Vector3(l, 0, 0), Vector3(l, l, 0), Vector3(0, l, 0) ),
-    Array[Vector3]( Vector3(0, 0, l), Vector3(l, 0, l), Vector3(l, l, l), Vector3(0, l, l) )
+  def corners(l:Double): ARRAY[ARRAY[Vector3]] = ARRAY[ARRAY[Vector3]](
+    ARRAY[Vector3]( Vector3(0, 0, 0), Vector3(l, 0, 0), Vector3(l, l, 0), Vector3(0, l, 0) ),
+    ARRAY[Vector3]( Vector3(0, 0, l), Vector3(l, 0, l), Vector3(l, l, l), Vector3(0, l, l) )
   )
 
-  def cubePoints(l:Double, n:Int): Array[Vector3] = {
+  def cubePoints(l:Double, n:Int): ARRAY[Vector3] = {
 
     val basis = corners(l)
 
@@ -29,7 +31,7 @@ object VolumeMesh {
     val pointCount:Int = cubeInPlace(n) - cubeInPlace(capStride)
     val sidePointCount = pointCount - (2 * capPointCount) //points.length - (2 * capPointCount)
 
-    val points:Array[Vector3] = new Array[Vector3](pointCount) //(cubeInPlace(n) - cubeInPlace(n - 2))  // n³ - (n-2)³
+    val points:ARRAY[Vector3] = new ARRAY[Vector3](pointCount) //(cubeInPlace(n) - cubeInPlace(n - 2))  // n³ - (n-2)³
 
     for (p <- 0 until sidePointCount) {
       val i:Int = (p % stride) / panelStride
@@ -62,13 +64,13 @@ object VolumeMesh {
 
   def cube(l:Double = 1.0, n:Int = 64):VolumeMesh = {
 
-    val points: Array[Vector3] = cubePoints(l, n)
+    val points: ARRAY[Vector3] = cubePoints(l, n)
 
     val panelStride:Int = n - 1
 
     val stride:Int = 4 * panelStride
 
-    val triangles: Array[IndexTriangle] = new Array[IndexTriangle]( 12 * squareInPlace(n - 1) ) // 12(n-1)²
+    val triangles: ARRAY[IndexTriangle] = new ARRAY[IndexTriangle]( 12 * squareInPlace(n - 1) ) // 12(n-1)²
 
     var t:Int = 0
 
@@ -193,7 +195,7 @@ object VolumeMesh {
     val Δθ: Double = (2 * π) / segments
     val cuts:Int = capSegments + sideSegments
 
-    val points: Array[Vector3] = new Array[Vector3](2 + ((cuts + 1) * segments))
+    val points: ARRAY[Vector3] = new ARRAY[Vector3](2 + ((cuts + 1) * segments))
   //  println(points.length)
 
     val pEnd: Int = points.length - 1
@@ -230,7 +232,7 @@ object VolumeMesh {
 
 //    println(pcount)
 
-    val triangles: Array[IndexTriangle] = new Array[IndexTriangle]((2 * (cuts + 1)) * segments)
+    val triangles: ARRAY[IndexTriangle] = new ARRAY[IndexTriangle]((2 * (cuts + 1)) * segments)
 
     p = 1
     var t = 0
@@ -264,29 +266,17 @@ object VolumeMesh {
     VolumeMesh(points, triangles)
   }
 
-  def apply(points:Array[Vector3], triangles:mutable.HashSet[IndexTriangle]):VolumeMesh = {
-//    val triangles:Array[IndexTriangle] = new Array[IndexTriangle](triangleSet.size)
-//    var i:Int = 0
-//    for (t <- triangleSet) {
-//      triangles(i) = t
-//      i += 1
-//    }
-    VolumeMesh(points, triangles.toArray)
+  def apply(points:ARRAY[Vector3], triangleSet:mutable.HashSet[IndexTriangle]):VolumeMesh = {
+    val triangles:ARRAY[IndexTriangle] = new ARRAY[IndexTriangle](triangleSet.size)
+    var i:Int = 0
+    for (t <- triangleSet) {
+      triangles(i) = t
+      i += 1
+    }
+    VolumeMesh(points, triangles)
   }
 }
 
-case class VolumeMesh(vertices: Array[Vector3], triangles: Array[IndexTriangle]) {
+case class VolumeMesh(vertices: ARRAY[Vector3], triangles: ARRAY[IndexTriangle]) {
   def transform(f: Vector3 => Vector3):VolumeMesh = VolumeMesh( vertices.map(f), triangles)
-}
-
-object TestVolumeMesh extends App {
-
-  import ai.dragonfly.bitfrost.visualization.VolumeMesh.{cube, cylinder}
-  import ai.dragonfly.bitfrost.ColorContext.sRGB.*
-
-  PLY.write(cube(), (v:Vector3) => ARGB32.fromRGB(RGB(v.values)), new java.io.FileOutputStream( new File(s"./demo/ply/primitives/sRGB_RGB_TestCube.ply") ))
-
-//  PLY.write(cylinder(capSegments = 4), (v:Vector3) => ARGB32.fromRGB(HSV.fromCartesian(v).toRGB), new java.io.FileOutputStream( new File(s"./demo/ply/primitives/sRGB_HSV_TestCylinder.ply") ))
-//  PLY.write(cylinder(sideSegments = 10), (v:Vector3) => ARGB32.fromRGB(HSL.fromCartesian(v).toRGB), new java.io.FileOutputStream( new File(s"./demo/ply/primitives/sRGB_HSL_TestCylinder.ply") ))
-
 }

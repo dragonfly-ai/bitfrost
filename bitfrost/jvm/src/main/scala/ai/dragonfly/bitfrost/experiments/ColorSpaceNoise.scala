@@ -60,7 +60,7 @@ object ColorSpaceNoise extends App {
       }
     }
 
-    for (space <- Seq[Space[_]](XYZ, RGB, CMY, CMYK, Lab, Luv, HSV, HSL)) {
+    for (space <- Seq[Space[_]](XYZ, RGB, CMY, CMYK, Lab, Luv, HSV, HSL)) { // ARGB32, RGBA32, ARGB64, RGBA64)) { //
 
       val spaceToARGB32:Vector3 => ColorContext.sRGB.ARGB32 = (v:Vector3) => XYZtoARGB32(Vector3(space.fromVector3(v).toXYZ.values))
 

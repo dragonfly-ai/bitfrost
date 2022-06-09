@@ -1,5 +1,6 @@
 package ai.dragonfly.bitfrost.color.model.huesat
 
+import bridge.array.*
 import ai.dragonfly.bitfrost.NormalizedValue
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
@@ -25,14 +26,14 @@ trait HueSaturation { self: WorkingSpace =>
 
     inline def clampHue(angle: Double): Double = ((angle % 360.0d) + 360.0d) % 360.0d // Aly Cerruti's angle santization function from nose
 
-    inline def hueMinMax(red: Double, green: Double, blue: Double): VectorValues = {
+    inline def hueMinMax(red: Double, green: Double, blue: Double): ARRAY[Double] = {
       // hue extractor based on a scala implementation in project nose: https://gitlab.com/srnb/nose/-/blob/master/nose/src/main/scala/tf/bug/nose/space/rgb/StandardRGB.scala
       // provided by Aly Cerruti
 
       val min: Double = Math.min(red, Math.min(green, blue))
       val MAX: Double = Math.max(red, Math.max(green, blue))
 
-      VectorValues(
+      ARRAY[Double](
         clampHue(
           MAX match {
             case `min` => 0.0
@@ -75,7 +76,7 @@ trait HueSaturation { self: WorkingSpace =>
       )
     }
 
-    inline def hcxmToRGBvalues(hue: Double, c: Double, x: Double, m: Double): VectorValues = {
+    inline def hcxmToRGBvalues(hue: Double, c: Double, x: Double, m: Double): ARRAY[Double] = {
       val X = x + m
       val C = c + m
 

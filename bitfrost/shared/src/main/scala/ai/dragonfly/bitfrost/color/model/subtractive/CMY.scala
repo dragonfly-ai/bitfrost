@@ -1,10 +1,11 @@
 package ai.dragonfly.bitfrost.color.model.subtractive
 
+import bridge.array.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.visualization.VolumeMesh
 import ai.dragonfly.bitfrost.{ColorContext, NormalizedValue}
 import ai.dragonfly.math.Random
-import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
+import ai.dragonfly.math.vector.*
 
 trait CMY { self: WorkingSpace =>
 
@@ -12,9 +13,9 @@ trait CMY { self: WorkingSpace =>
 
     override val maxDistanceSquared: Double = 4.0
 
-    def apply(values: VectorValues): CMY = new CMY(dimensionCheck(values, 3))
+    def apply(values: ARRAY[Double]): CMY = new CMY(dimensionCheck(values, 3))
 
-    def apply(cyan: Double, magenta: Double, yellow: Double): CMY = apply(VectorValues(cyan, magenta, yellow))
+    def apply(cyan: Double, magenta: Double, yellow: Double): CMY = apply(ARRAY[Double](cyan, magenta, yellow))
 
 
     /**
@@ -32,7 +33,7 @@ trait CMY { self: WorkingSpace =>
     }
 
     override def random(r: scala.util.Random = Random.defaultRandom): CMY = apply(
-      VectorValues(
+      ARRAY[Double](
         r.nextDouble(),
         r.nextDouble(),
         r.nextDouble()
@@ -69,7 +70,7 @@ trait CMY { self: WorkingSpace =>
    * }}}
    */
 
-  case class CMY private(override val values: VectorValues) extends VectorModel[CMY] {
+  case class CMY private(override val values: ARRAY[Double]) extends VectorModel[CMY] {
     override type VEC = this.type with CMY
 
     inline def cyan: Double = values(0)
@@ -92,7 +93,7 @@ trait CMY { self: WorkingSpace =>
 
     override def toString: String = s"CMY($cyan, $magenta, $yellow)"
 
-    override def copy(): VEC = new CMY(VectorValues(cyan, magenta, yellow)).asInstanceOf[VEC]
+    override def copy(): VEC = new CMY(ARRAY[Double](cyan, magenta, yellow)).asInstanceOf[VEC]
   }
 
 }

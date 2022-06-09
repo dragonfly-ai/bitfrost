@@ -1,11 +1,10 @@
 package ai.dragonfly.bitfrost.cie
 
-import Jama.Matrix
-import ai.dragonfly.math.matrix
-import ai.dragonfly.math.matrix.MatrixValues
+import bridge.array.*
+import ai.dragonfly.math.matrix.*
 import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
 import ai.dragonfly.math.matrix.util.asColumnMatrix
-import ai.dragonfly.math.vector.{Vector2, VectorValues}
+import ai.dragonfly.math.vector.*
 
 object ChromaticityPrimary {
   def inferThird(cp1: ChromaticityPrimary, cp2: ChromaticityPrimary): ChromaticityPrimary = ChromaticityPrimary(
@@ -39,15 +38,15 @@ case class ChromaticityPrimaries(red: ChromaticityPrimary, green: ChromaticityPr
 
   // from http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 
-  def raw(S: VectorValues = VectorValues(1.0, 1.0, 1.0)):MatrixValues = MatrixValues(
-    VectorValues( S(0) * (red.x / red.y)                , S(1) * (green.x / green.y)                  , S(2) * (blue.x / blue.y)                  ),
+  def raw(S: ARRAY[Double] = ARRAY[Double](1.0, 1.0, 1.0)):ARRAY[ARRAY[Double]] = ARRAY[ARRAY[Double]](
+    ARRAY[Double]( S(0) * (red.x / red.y)                , S(1) * (green.x / green.y)                  , S(2) * (blue.x / blue.y)                  ),
     S,
-    VectorValues( S(0) * ((1.0 - red.x - red.y) / red.y), S(1) * ((1.0 - green.x - green.y) / green.y), S(2) * ((1.0 - blue.x - blue.y) / blue.y) )
+    ARRAY[Double]( S(0) * ((1.0 - red.x - red.y) / red.y), S(1) * ((1.0 - green.x - green.y) / green.y), S(2) * ((1.0 - blue.x - blue.y) / blue.y) )
   )
 
-  lazy val xyzXrgbInv:Matrix = new Matrix(raw()).inverse()
+  lazy val xyzXrgbInv:Matrix = Matrix(raw()).inverse()
 
   def getM(illuminant: Illuminant):Matrix = {
-    new Matrix(raw((xyzXrgbInv * illuminant.asColumnMatrix).getRowPackedCopy()))
+    Matrix(raw((xyzXrgbInv * illuminant.asColumnMatrix).getRowPackedCopy()))
   }
 }

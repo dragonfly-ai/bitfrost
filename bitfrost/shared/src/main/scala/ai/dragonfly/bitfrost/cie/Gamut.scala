@@ -1,14 +1,15 @@
 package ai.dragonfly.bitfrost.cie
 
+import bridge.array.*
 import ai.dragonfly.bitfrost.color.spectral.SampleSet
 import ai.dragonfly.bitfrost.visualization.*
-import ai.dragonfly.math.matrix.PCA
-import ai.dragonfly.math.matrix.data.StaticUnsupervisedData
+import ai.dragonfly.math.matrix.ml.unsupervised.dimreduction.PCA
+import ai.dragonfly.math.matrix.ml.data.*
 import ai.dragonfly.math.squareInPlace
 import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
 import ai.dragonfly.math.stats.probability.distributions.stream.StreamingVectorStats
-import ai.dragonfly.math.vector.{VECTORS, Vector3}
+import ai.dragonfly.math.vector.*
 
 import java.io.PrintWriter
 import scala.collection.immutable
@@ -17,8 +18,8 @@ import scala.collection.mutable
 trait Gamut { self: WorkingSpace =>
   object Gamut {
 
-    def computeMaxDistSquared(points: Array[Vector3], mean: Vector3): Double = {
-      val vs: VECTORS = new VECTORS(points.length)
+    def computeMaxDistSquared(points: ARRAY[Vector3], mean: Vector3): Double = {
+      val vs: ARRAY[Vector] = new ARRAY[Vector](points.length)
 
       for (i <- points.indices) vs(i) = points(i) - mean
 
@@ -72,7 +73,9 @@ trait Gamut { self: WorkingSpace =>
 
     def fromSpectralSamples(spectralSamples: SampleSet, transform: Vector3 => Vector3 = (v: Vector3) => v): Gamut = {
 
-      val points: Array[Vector3] = spectralSamples.volumePoints.map( transform )
+      val points: ARRAY[Vector3] = ARRAY.tabulate[Vector3](spectralSamples.volumePoints.length)(
+        (i:Int)=> transform(spectralSamples.volumePoints(i))
+      )
 
       val triangles:mutable.HashSet[IndexTriangle] = mutable.HashSet[IndexTriangle]()
 

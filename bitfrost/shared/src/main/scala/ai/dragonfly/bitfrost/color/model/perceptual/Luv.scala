@@ -1,10 +1,11 @@
 package ai.dragonfly.bitfrost.color.model.perceptual
 
+import bridge.array.*
 import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.cie.Constant.*
 import ai.dragonfly.math.stats.geometry.Tetrahedron
-import ai.dragonfly.math.vector.{Vector2, Vector3, VectorValues, dimensionCheck}
+import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.{Random, cubeInPlace}
 
 trait Luv { self: WorkingSpace =>
@@ -39,7 +40,7 @@ trait Luv { self: WorkingSpace =>
 
   object Luv extends LStarSpace[Luv] {
 
-    def apply(values: VectorValues): Luv = new Luv(dimensionCheck(values, 3))
+    def apply(values: ARRAY[Double]): Luv = new Luv(dimensionCheck(values, 3))
 
     /**
      * @constructor Create a new SlowSlimLuv object from three float values.  This constructor does not validate input parameters.
@@ -50,7 +51,7 @@ trait Luv { self: WorkingSpace =>
      * @example {{{ val c = SlowSlimLuv(14.756, -3.756, -58.528) }}}
      */
 
-    def apply(L: Double, u: Double, v: Double): Luv = apply(VectorValues(L, u, v))
+    def apply(L: Double, u: Double, v: Double): Luv = apply(ARRAY[Double](L, u, v))
 
     // XYZ to LUV and helpers:
 
@@ -87,7 +88,7 @@ trait Luv { self: WorkingSpace =>
    * @see [[https://en.wikipedia.org/wiki/CIELUV]] for more information on CIE L*u*v*.
    */
 
-  case class Luv private(override val values: VectorValues) extends LStarModel[Luv] {
+  case class Luv private(override val values: ARRAY[Double]) extends LStarModel[Luv] {
     override type VEC = this.type with Luv
 
     inline def L: Double = values(0)
@@ -98,7 +99,7 @@ trait Luv { self: WorkingSpace =>
 
     override def toString: String = s"L⭑u⭑v⭑(${L},${u},${v})"
 
-    override def copy(): VEC = new Luv(VectorValues(L, u, v)).asInstanceOf[VEC]
+    override def copy(): VEC = new Luv(ARRAY[Double](L, u, v)).asInstanceOf[VEC]
 
     // LUV to XYZ and helpers:
     inline def flInverse(t: Double): Double = if (t > kϵ) {

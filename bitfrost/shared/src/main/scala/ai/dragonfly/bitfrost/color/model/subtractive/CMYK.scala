@@ -1,10 +1,11 @@
 package ai.dragonfly.bitfrost.color.model.subtractive
 
+import bridge.array.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.visualization.VolumeMesh
 import ai.dragonfly.bitfrost.{ColorContext, NormalizedValue}
 import ai.dragonfly.math.Random
-import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
+import ai.dragonfly.math.vector.*
 
 trait CMYK { self: WorkingSpace =>
 
@@ -12,13 +13,13 @@ trait CMYK { self: WorkingSpace =>
 
     override val maxDistanceSquared: Double = 4.0
 
-    def apply(values: VectorValues): CMYK = {
+    def apply(values: ARRAY[Double]): CMYK = {
       if (values.length == 3) apply(values(0), values(1), values(2))
       else new CMYK(dimensionCheck(values, 4))
     }
 
     def apply(cyan: Double, magenta: Double, yellow: Double): CMYK = {
-      val values: VectorValues = VectorValues(
+      val values: ARRAY[Double] = ARRAY[Double](
         cyan,
         magenta,
         yellow,
@@ -34,7 +35,7 @@ trait CMYK { self: WorkingSpace =>
       apply(values)
     }
 
-    def apply(cyan: Double, magenta: Double, yellow: Double, key: Double): CMYK = apply(VectorValues(cyan, magenta, yellow, key))
+    def apply(cyan: Double, magenta: Double, yellow: Double, key: Double): CMYK = apply(ARRAY[Double](cyan, magenta, yellow, key))
 
 
     /**
@@ -103,7 +104,7 @@ trait CMYK { self: WorkingSpace =>
    * }}}
    */
 
-  case class CMYK private(override val values: VectorValues) extends VectorModel[CMYK] {
+  case class CMYK private(override val values: ARRAY[Double]) extends VectorModel[CMYK] {
     override type VEC = this.type with CMYK
 
     inline def cyan: Double = values(0)
@@ -141,7 +142,7 @@ trait CMYK { self: WorkingSpace =>
 
     override def toString: String = s"CMYK($cyan, $magenta, $yellow, $key)"
 
-    override def copy(): VEC = new CMYK(VectorValues(cyan, magenta, yellow, key)).asInstanceOf[VEC]
+    override def copy(): VEC = new CMYK(ARRAY[Double](cyan, magenta, yellow, key)).asInstanceOf[VEC]
   }
 
 }

@@ -1,14 +1,14 @@
 package ai.dragonfly.bitfrost.color.model.rgb
 
-import Jama.Matrix
+import bridge.array.*
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.bitfrost.NormalizedValue
 import ai.dragonfly.bitfrost.visualization.VolumeMesh
 import ai.dragonfly.math.Random
-import ai.dragonfly.math.matrix.MatrixValues
-import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
+import ai.dragonfly.math.matrix.*
+import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
 import ai.dragonfly.math.matrix.util.asColumnMatrix
 
@@ -22,7 +22,7 @@ trait RGB { self: WorkingSpace =>
 
     override val maxDistanceSquared: Double = 9.0
 
-    def apply(values: VectorValues): RGB = new RGB(dimensionCheck(values, 3))
+    def apply(values: ARRAY[Double]): RGB = new RGB(dimensionCheck(values, 3))
 
     /**
      * Factory method to create a fully opaque RGB instance from separate, specified red, green, blue components and
@@ -37,7 +37,7 @@ trait RGB { self: WorkingSpace =>
      * @return an instance of the RGB case class.
      * @example {{{ val c = RGB(72,105,183) }}}
      */
-    def apply(red: Double, green: Double, blue: Double): RGB = apply(VectorValues(red, green, blue))
+    def apply(red: Double, green: Double, blue: Double): RGB = apply(ARRAY[Double](red, green, blue))
 
 //    def apply(argb: ARGB32): RGB = apply(`1/255` * argb.red, `1/255` * argb.green, `1/255` * argb.blue)
 //
@@ -76,14 +76,14 @@ trait RGB { self: WorkingSpace =>
      * @return a randomly generated color sampled from the RGB Color Space.
      */
     override def random(r: scala.util.Random = Random.defaultRandom): RGB = apply(
-      VectorValues(r.nextDouble(), r.nextDouble(), r.nextDouble())
+      ARRAY[Double](r.nextDouble(), r.nextDouble(), r.nextDouble())
     )
 
     override lazy val gamut: VolumeMesh = VolumeMesh.cube()
 
   }
 
-  case class RGB private(override val values: VectorValues) extends VectorModel[RGB] {
+  case class RGB private(override val values: ARRAY[Double]) extends VectorModel[RGB] {
     override type VEC = this.type with RGB
 
     inline def red: Double = values(0)
@@ -94,16 +94,16 @@ trait RGB { self: WorkingSpace =>
 
     override val toString: String = s"RGB($red, $green, $blue)"
 
-    override def copy(): VEC = new RGB(VectorValues(red, green, blue)).asInstanceOf[VEC]
+    override def copy(): VEC = new RGB(ARRAY[Double](red, green, blue)).asInstanceOf[VEC]
 
     def toXYZ: XYZ = XYZ(
-      (M * new Matrix(
-        MatrixValues(
-          VectorValues(transferFunction.decode(red)),
-          VectorValues(transferFunction.decode(green)),
-          VectorValues(transferFunction.decode(blue))
+      (M * Matrix(
+        ARRAY[ARRAY[Double]](
+          ARRAY[Double](transferFunction.decode(red)),
+          ARRAY[Double](transferFunction.decode(green)),
+          ARRAY[Double](transferFunction.decode(blue))
         )
-      )).getRowPackedCopy().asInstanceOf[VectorValues]
+      )).getRowPackedCopy().asInstanceOf[ARRAY[Double]]
     )
 
     override def similarity(that: RGB): Double = RGB.similarity(this, that)

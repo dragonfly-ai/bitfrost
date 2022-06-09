@@ -1,13 +1,13 @@
 package ai.dragonfly.bitfrost.cie
 
-import Jama.Matrix
+import bridge.array.*
 import ai.dragonfly.math.*
-import vector.{VECTORS, Vector, Vector2, Vector3, VectorValues, dimensionCheck}
+import vector.*
 import matrix.*
 import matrix.util.*
 import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
 import ai.dragonfly.math.matrix.util.asColumnMatrix
-import ai.dragonfly.math.matrix.data.StaticUnsupervisedData
+import ai.dragonfly.math.matrix.ml.data.*
 import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.bitfrost.color.model.perceptual.XYZ
 import ai.dragonfly.bitfrost.color.model.rgb.discrete.{ARGB32, RGBA32}
@@ -53,11 +53,11 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
   }
 
   trait CylindricalModel[C <: CylindricalModel[C]] extends Model[C] {
-    val values:VectorValues
+    val values:ARRAY[Double]
   }
 
   trait VectorModel[C <: VectorModel[C]] extends Model[C] with Vector {
-    val values:VectorValues
+    val values:ARRAY[Double]
   }
 
   trait PerceptualModel[C <: PerceptualModel[C]] extends VectorModel[C] {
@@ -122,7 +122,7 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
       1.0 - Math.sqrt(c1.euclid.distanceSquaredTo(c2) / maxDistanceSquared)
     }
 
-    def apply(values:VectorValues):C
+    def apply(values:ARRAY[Double]):C
 
     override def fromVector3(v: Vector3): C = apply(v.copy().values)
 
@@ -132,7 +132,7 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
   trait PerceptualSpace[C <: PerceptualModel[C]] extends VectorSpace[C] {
 
-    def apply(values: VectorValues): C
+    def apply(values: ARRAY[Double]): C
 
     def apply(c1: Double, c2: Double, c3: Double): C
 

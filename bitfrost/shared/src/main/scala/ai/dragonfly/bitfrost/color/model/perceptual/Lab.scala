@@ -1,17 +1,18 @@
 package ai.dragonfly.bitfrost.color.model.perceptual
 
+import bridge.array.*
 import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.cie.Constant.*
 import ai.dragonfly.math.stats.geometry.Tetrahedron
-import ai.dragonfly.math.vector.{Vector3, VectorValues, dimensionCheck}
+import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.{Random, cubeInPlace}
 
 trait Lab { self: WorkingSpace =>
 
   object Lab extends LStarSpace[Lab] {
 
-    def apply(values: VectorValues): Lab = new Lab(dimensionCheck(values, 3))
+    def apply(values: ARRAY[Double]): Lab = new Lab(dimensionCheck(values, 3))
 
     /**
      * @param L the L* component of the CIE L*a*b* color.
@@ -20,7 +21,7 @@ trait Lab { self: WorkingSpace =>
      * @return an instance of the LAB case class.
      * @example {{{ val c = LAB(72.872, -0.531, 71.770) }}}
      */
-    def apply(L: Double, a: Double, b: Double): Lab = apply(VectorValues(L, a, b))
+    def apply(L: Double, a: Double, b: Double): Lab = apply(ARRAY[Double](L, a, b))
 
     inline def f(t: Double): Double = if (t > ϵ) Math.cbrt(t) else (t * `k/116`) + `16/116`
 
@@ -45,10 +46,10 @@ trait Lab { self: WorkingSpace =>
 //    override def toString:String = s"${illuminant}L*a*b*"
   }
 
-  case class Lab private(override val values: VectorValues) extends LStarModel[Lab] {
+  case class Lab private(override val values: ARRAY[Double]) extends LStarModel[Lab] {
     override type VEC = this.type with Lab
 
-    override def copy(): VEC = new Lab(VectorValues(L, a, b)).asInstanceOf[VEC]
+    override def copy(): VEC = new Lab(ARRAY[Double](L, a, b)).asInstanceOf[VEC]
 
     inline def L: Double = values(0)
 
