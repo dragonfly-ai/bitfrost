@@ -47,7 +47,7 @@ trait HueSaturation { self: WorkingSpace =>
       )
     }
 
-    override def asVector3(c: C): Vector3 = Vector3(
+    override def toVector3(c: C): Vector3 = Vector3(
       c.values(1) * Math.cos(degreesToRadians(c.values(0))),
       c.values(1) * Math.sin(degreesToRadians(c.values(0))),
       c.values(2)
@@ -65,10 +65,10 @@ trait HueSaturation { self: WorkingSpace =>
 
     override val maxDistanceSquared: Double = 6.0
 
-    override def similarity(c1: C, c2: C): Double = 1.0 - Math.sqrt(asVector3(c1).euclid.distanceSquaredTo(asVector3(c2)) / maxDistanceSquared)
+    override def similarity(c1: C, c2: C): Double = 1.0 - Math.sqrt(toVector3(c1).euclid.distanceSquaredTo(toVector3(c2)) / maxDistanceSquared)
 
     override def weightedAverage(c1: C, w1: Double, c2: C, w2: Double): C = {
-      val avg: Vector3 = (asVector3(c1) * w1) + (asVector3(c2) * w2)
+      val avg: Vector3 = (toVector3(c1) * w1) + (toVector3(c2) * w2)
       apply(
         Math.atan(avg.x / avg.y),
         Math.sqrt(squareInPlace(avg.x) + squareInPlace(avg.y)),

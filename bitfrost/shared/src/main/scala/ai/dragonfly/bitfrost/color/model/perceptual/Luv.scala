@@ -38,7 +38,7 @@ trait Luv { self: WorkingSpace =>
     }
   }
 
-  object Luv extends LStarSpace[Luv] {
+  object Luv extends PerceptualSpace[Luv] {
 
     def apply(values: ARRAY[Double]): Luv = new Luv(dimensionCheck(values, 3))
 
@@ -88,7 +88,7 @@ trait Luv { self: WorkingSpace =>
    * @see [[https://en.wikipedia.org/wiki/CIELUV]] for more information on CIE L*u*v*.
    */
 
-  case class Luv private(override val values: ARRAY[Double]) extends LStarModel[Luv] {
+  case class Luv private(override val values: ARRAY[Double]) extends PerceptualModel[Luv] {
     override type VEC = this.type with Luv
 
     inline def L: Double = values(0)

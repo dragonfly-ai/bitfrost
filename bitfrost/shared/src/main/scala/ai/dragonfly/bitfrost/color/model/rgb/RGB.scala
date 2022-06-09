@@ -79,7 +79,6 @@ trait RGB { self: WorkingSpace =>
       ARRAY[Double](r.nextDouble(), r.nextDouble(), r.nextDouble())
     )
 
-    override lazy val gamut: VolumeMesh = VolumeMesh.cube()
 
   }
 

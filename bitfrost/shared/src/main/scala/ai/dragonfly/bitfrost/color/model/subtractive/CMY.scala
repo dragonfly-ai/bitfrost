@@ -50,7 +50,6 @@ trait CMY { self: WorkingSpace =>
       )
     )
 
-    override lazy val gamut: VolumeMesh = VolumeMesh.cube()
   }
 
   /**

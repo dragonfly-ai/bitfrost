@@ -9,6 +9,7 @@ object ConversionFidelity extends App {
     var `error(ARGB32<->RGB)`: Double = 0.0
     var `error(ARGB32<->RGBA32)`: Double = 0.0
     var `error(RGB<->CMYK)`: Double = 0.0
+    var `error(RGB<->CMY)`: Double = 0.0
     var `error(RGB<->HSV)`: Double = 0.0
     var `error(RGB<->HSL)`: Double = 0.0
     var `error(RGB<->XYZ)`: Double = 0.0
@@ -37,15 +38,22 @@ object ConversionFidelity extends App {
             println(s"$c $err")
             `error(ARGB32<->RGBA32)` += err
           }
+          // ARGB -> RGB -> CMY -> RGB -> ARGB
+          val cmy = CMY.fromRGB(rgb)
+          var cT = ARGB32.fromRGB(cmy.toRGB)
+          err = c.similarity(cT)
+          if (err != 1.0) {
+            println(s"$c -> $cmy -> $cT: $err")
+            `error(RGB<->CMY)` += err
+          }
           // ARGB -> RGB -> CMYK -> RGB -> ARGB
           val cmyk = CMYK.fromRGB(rgb)
-          var cT = ARGB32.fromRGB(cmyk.toRGB)
+          cT = ARGB32.fromRGB(cmyk.toRGB)
           err = c.similarity(cT)
           if (err != 1.0) {
             println(s"$c -> $cmyk -> $cT: $err")
             `error(RGB<->CMYK)` += err
           }
-
           // ARGB -> RGB -> HSV -> RGB -> ARGB
           val hsv = HSV.fromRGB(rgb)
           cT = ARGB32.fromRGB(hsv.toRGB)
@@ -92,6 +100,7 @@ object ConversionFidelity extends App {
     println("]")
     println(s"${`error(ARGB32<->RGB)`} `error(ARGB32<->RGB)`")
     println(s"${`error(ARGB32<->RGBA32)`} `error(ARGB32<->RGBA32)`")
+    println(s"${`error(RGB<->CMY)`} `error(RGB<->CMY)`")
     println(s"${`error(RGB<->CMYK)`} `error(RGB<->CMYK)`")
     println(s"${`error(RGB<->HSV)`} `error(RGB<->HSV)`")
     println(s"${`error(RGB<->HSL)`} `error(RGB<->HSL)`")

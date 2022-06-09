@@ -76,13 +76,11 @@ trait CMYK { self: WorkingSpace =>
       )
     }
 
-    override def asVector3(c: CMYK): Vector3 = Vector3(
+    override def toVector3(c: CMYK): Vector3 = Vector3(
       c.cyan + c.key,
       c.yellow + c.key,
       c.magenta + c.key
     )
-
-    override lazy val gamut: VolumeMesh = VolumeMesh.cube()
 
   }
 

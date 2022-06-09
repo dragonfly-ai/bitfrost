@@ -28,8 +28,6 @@ trait DiscreteRGB {
     val MAX: Int
     lazy val MAXD: Double = MAX.toDouble
 
-    override lazy val gamut: VolumeMesh = VolumeMesh.cube(MAXD)
-
     override lazy val maxDistanceSquared: Double = 3 * squareInPlace(MAXD)
 
     override def similarity(c1: C, c2: C): Double = {
@@ -61,7 +59,7 @@ trait DiscreteRGB {
 
     override def fromVector3(v: Vector3): C = apply(v.x.toInt, v.y.toInt, v.z.toInt)
 
-    override def asVector3(c: C): Vector3 = Vector3(c.red, c.green, c.blue)
+    override def toVector3(c: C): Vector3 = Vector3(c.red, c.green, c.blue)
 
     // abstract
     def apply(red: Int, green: Int, blue: Int): C

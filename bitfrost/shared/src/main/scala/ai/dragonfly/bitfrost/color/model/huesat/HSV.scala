@@ -82,8 +82,6 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
       )
     )
 
-    override def gamut: VolumeMesh = VolumeMesh.cylinder(capSegments = 6)
-
   }
 
   case class HSV private(override val values: ARRAY[Double]) extends HueSaturation[HSV] {

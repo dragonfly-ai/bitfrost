@@ -4,7 +4,7 @@ import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.bitfrost.color.spectral.*
-import ai.dragonfly.bitfrost.visualization.{PLY, VolumeMesh}
+import ai.dragonfly.bitfrost.visualization.{GamutMeshGenerator, PLY, VolumeMesh}
 import ai.dragonfly.math.vector.Vector3
 
 import java.awt.image.BufferedImage
@@ -26,6 +26,8 @@ object ColorSpaceNoise extends App {
 
     println(s"\t$context:")
 
+    val GMG: GamutMeshGenerator = GamutMeshGenerator(context)
+
     def noisyImage(space:Space[_], transform: Vector3 => ColorContext.sRGB.ARGB32):Unit = {
 
       for (y <- 0 until h) {
@@ -39,48 +41,25 @@ object ColorSpaceNoise extends App {
       ImageIO.write(bi, "PNG", new File(fileName))
     }
 
-    def writeVolumeMesh(mesh:VolumeMesh, transform: Vector3 => ColorContext.sRGB.ARGB32, fileName:String):Unit = {
 
-      println(s"\t\twriting $fileName")
-      PLY.write(
-        mesh,
-        transform,
-        new java.io.FileOutputStream( new File(fileName) )
-      )
-
-    }
-
-    val XYZtoARGB32:Vector3 => ColorContext.sRGB.ARGB32 = {
-      import ColorContext.sRGB
-      if (context == sRGB.ARGB32) {
-        (v: Vector3) => sRGB.ARGB32.fromXYZ(sRGB.XYZ(v.values))
-      } else {
-        val chromaticAdapter: ChromaticAdaptation[context.type, sRGB.type] = ChromaticAdaptation[context.type, sRGB.type](context, sRGB)
-        (v: Vector3) => sRGB.ARGB32.fromXYZ(chromaticAdapter(XYZ(v.values)))
-      }
-    }
 
     for (space <- Seq[Space[_]](XYZ, RGB, CMY, CMYK, Lab, Luv, HSV, HSL)) { // ARGB32, RGBA32, ARGB64, RGBA64)) { //
 
-      val spaceToARGB32:Vector3 => ColorContext.sRGB.ARGB32 = (v:Vector3) => XYZtoARGB32(Vector3(space.fromVector3(v).toXYZ.values))
-
       space match {
-        case perceptualSpace: PerceptualSpace[_] =>
-          writeVolumeMesh(
-            perceptualSpace.theoreticalGamut,
-            spaceToARGB32,
-            s"./demo/ply/$context${perceptualSpace}FullGamut.ply"
+        case perceptualSpace: GMG.ws.PerceptualSpace[_] =>
+          PLY.write(
+            GMG.fullGamut(perceptualSpace),
+            new java.io.FileOutputStream( new File(s"./demo/ply/$context${perceptualSpace}FullGamut.ply"))
           )
         case _ =>
       }
 
-      writeVolumeMesh(
-        space.gamut,
-        spaceToARGB32,
-        s"./demo/ply/$context$space.ply"
+      PLY.write(
+        GMG.usableGamut(space),
+        new java.io.FileOutputStream( new File(s"./demo/ply/$context$space.ply"))
       )
 
-      noisyImage(space, XYZtoARGB32)
+      noisyImage(space, GMG.XYZtoARGB32)
     }
 
 

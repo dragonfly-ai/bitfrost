@@ -26,15 +26,6 @@ trait XYZ { self:WorkingSpace =>
 
   object XYZ extends PerceptualSpace[XYZ] {
 
-    override lazy val visibleGamut:Gamut = Gamut.fromSpectralSamples(
-      cmf,
-      (v:Vector3) => Vector3(
-        whitePoint.x * v.x,
-        whitePoint.y * v.y,
-        whitePoint.z * v.z
-      )
-    )
-
     def apply(values: ARRAY[Double]): XYZ = new XYZ(dimensionCheck(values, 3))
 
     /**
@@ -48,8 +39,6 @@ trait XYZ { self:WorkingSpace =>
     def apply(x: Double, y: Double, z: Double): XYZ = apply(ARRAY[Double](x, y, z))
 
     override def fromXYZ(xyz: XYZ): XYZ = apply(xyz.x, xyz.y, xyz.z)
-
-    override lazy val theoreticalGamut: VolumeMesh = visibleGamut.volumeMesh
 
   }
 

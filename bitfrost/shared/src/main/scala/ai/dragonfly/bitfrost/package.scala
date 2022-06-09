@@ -50,23 +50,23 @@ package object bitfrost {
     import Illuminant.*
 
     val knownContexts:Array[ProvidedColorContexts] = Array[ProvidedColorContexts](
-      Adobe_RGB_1998,
-      Apple_RGB,
-      Best_RGB,
-      Beta_RGB,
-      Bruce_RGB,  // included as a gesture of gratitude to Bruce Lindenbloom who's work inspired this library and made it possible.
-      CIE_RGB,
-      ColorMatch_RGB,
-      Don_RGB_4,
-      ECI_RGB_v2,
-      Ekta_Space_PS5,
-      NTSC_RGB,
-      PAL_RGB,
-      ProPhoto_RGB,
-      SMPTE_C_RGB,
+//      Adobe_RGB_1998,
+//      Apple_RGB,
+//      Best_RGB,
+//      Beta_RGB,
+//      Bruce_RGB,  // included as a gesture of gratitude to Bruce Lindenbloom who's work inspired this library and made it possible.
+//      CIE_RGB,
+//      ColorMatch_RGB,
+//      Don_RGB_4,
+//      ECI_RGB_v2,
+//      Ekta_Space_PS5,
+//      NTSC_RGB,
+//      PAL_RGB,
+//      ProPhoto_RGB,
+//      SMPTE_C_RGB,
       sRGB,
-      Wide_Gamut_RGB,
-      P3_D65_Display
+//      Wide_Gamut_RGB,
+//      P3_D65_Display
     )
 
     //Adobe RGB (1998)
@@ -347,7 +347,7 @@ package object bitfrost {
         ARRAY[Double](0.5, 1.0, 0.166666666666667),
         ARRAY[Double](2.5, 1.0, 13.1666666666667)
       ))
-      override val cmf: SampleSet = CIE1931_JUDD1951_VOS1978_2deg_5nm
+      override val cmf: SampleSet = CIE1931_2deg_5nm
     }
 
     object Wide_Gamut_RGB extends ProvidedColorContexts {

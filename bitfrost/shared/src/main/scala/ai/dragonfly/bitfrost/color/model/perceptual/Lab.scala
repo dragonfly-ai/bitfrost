@@ -10,7 +10,7 @@ import ai.dragonfly.math.{Random, cubeInPlace}
 
 trait Lab { self: WorkingSpace =>
 
-  object Lab extends LStarSpace[Lab] {
+  object Lab extends PerceptualSpace[Lab] {
 
     def apply(values: ARRAY[Double]): Lab = new Lab(dimensionCheck(values, 3))
 
@@ -46,7 +46,7 @@ trait Lab { self: WorkingSpace =>
 //    override def toString:String = s"${illuminant}L*a*b*"
   }
 
-  case class Lab private(override val values: ARRAY[Double]) extends LStarModel[Lab] {
+  case class Lab private(override val values: ARRAY[Double]) extends PerceptualModel[Lab] {
     override type VEC = this.type with Lab
 
     override def copy(): VEC = new Lab(ARRAY[Double](L, a, b)).asInstanceOf[VEC]

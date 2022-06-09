@@ -63,9 +63,6 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
   trait PerceptualModel[C <: PerceptualModel[C]] extends VectorModel[C] {
   }
 
-  trait LStarModel[C <: PerceptualModel[C]] extends PerceptualModel[C] {
-  }
-
   //println("defined model traits")
 
   /**
@@ -73,7 +70,9 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
    */
 
   trait Space[C <: Model[C]](using ctx:WorkingSpace) extends Sampleable[C] {
+
     type COLOR = C
+
     /**
      * Computes a weighted average of two colors in C color space.
      * @param c1 the first color.
@@ -91,10 +90,8 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
     def fromRGB(rgb:RGB):C
     def fromXYZ(xyz:XYZ):C
 
-    def asVector3(c:C):Vector3
+    def toVector3(c:C):Vector3
     def fromVector3(v:Vector3): C
-
-    def gamut:VolumeMesh
 
   }
 
@@ -126,7 +123,7 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
     override def fromVector3(v: Vector3): C = apply(v.copy().values)
 
-    override def asVector3(c: C): Vector3 = Vector3(c.values)
+    override def toVector3(c: C): Vector3 = Vector3(c.values)
   }
 
 
@@ -138,29 +135,17 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
     override def fromRGB(rgb: RGB): C = fromXYZ(rgb.toXYZ)
 
-    lazy val rgbGamut:Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => Vector3(fromXYZ(xyz).values))
+    lazy val gamut:Gamut = Gamut.fromRGB(transform = (xyz:XYZ) => Vector3(fromXYZ(xyz).values))
 
-    override lazy val maxDistanceSquared:Double = rgbGamut.maxDistSquared
+    override lazy val maxDistanceSquared:Double = gamut.maxDistSquared
 
     override def random(r: Random = ai.dragonfly.math.Random.defaultRandom): C = {
-      val v = rgbGamut.random(r)
+      val v = gamut.random(r)
       apply(v.x, v.y, v.z)
     }
 
-    override def gamut: VolumeMesh = rgbGamut.volumeMesh
-
-    def theoreticalGamut:VolumeMesh
-
-    lazy val visibleGamut:Gamut = Gamut(theoreticalGamut)
   }
 
-  trait LStarSpace[C <: PerceptualModel[C]] extends PerceptualSpace[C] {
-
-    override lazy val theoreticalGamut: VolumeMesh = XYZ.theoreticalGamut.transform((v:Vector3) => asVector3(fromXYZ(XYZ(v.values))))
-
-    def randomFromVisibleGamut(r: Random = ai.dragonfly.math.Random.defaultRandom): C = apply(visibleGamut.random(r).values)
-
-  }
 
   override def toString: String = this.getClass.getSimpleName.replace('$', '_')
 
