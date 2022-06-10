@@ -85,7 +85,9 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
     def maxDistanceSquared:Double
 
-    def similarity(c1: C, c2: C): Double
+    def distanceSquared(c1: C, c2: C):Double
+    def distance(c1: C, c2: C):Double = Math.sqrt(distanceSquared(c1, c2))
+    def similarity(c1: C, c2: C): Double = 1.0 - Math.sqrt(distanceSquared(c1, c2) / maxDistanceSquared)
 
     def fromRGB(rgb:RGB):C
     def fromXYZ(xyz:XYZ):C
@@ -115,11 +117,9 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
      */
     def weightedAverage(c1: C, w1: Double, c2: C, w2: Double): C = ((c1 * w1) + (c2 * w2)).asInstanceOf[C]
 
-    override def similarity(c1: C, c2: C): Double = {
-      1.0 - Math.sqrt(c1.euclid.distanceSquaredTo(c2) / maxDistanceSquared)
-    }
-
     def apply(values:ARRAY[Double]):C
+
+    override def distanceSquared(c1: C, c2: C): Double = c1.euclid.distanceSquaredTo(c2)
 
     override def fromVector3(v: Vector3): C = apply(v.copy().values)
 

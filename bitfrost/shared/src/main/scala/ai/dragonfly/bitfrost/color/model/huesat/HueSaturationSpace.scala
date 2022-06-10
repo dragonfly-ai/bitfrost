@@ -65,16 +65,11 @@ trait HueSaturation { self: WorkingSpace =>
 
     override val maxDistanceSquared: Double = 6.0
 
-    override def similarity(c1: C, c2: C): Double = 1.0 - Math.sqrt(toVector3(c1).euclid.distanceSquaredTo(toVector3(c2)) / maxDistanceSquared)
+    override def distanceSquared(c1: C, c2: C): Double = toVector3(c1).euclid.distanceSquaredTo(toVector3(c2))
 
-    override def weightedAverage(c1: C, w1: Double, c2: C, w2: Double): C = {
-      val avg: Vector3 = (toVector3(c1) * w1) + (toVector3(c2) * w2)
-      apply(
-        Math.atan(avg.x / avg.y),
-        Math.sqrt(squareInPlace(avg.x) + squareInPlace(avg.y)),
-        avg.z
-      )
-    }
+    override def weightedAverage(c1: C, w1: Double, c2: C, w2: Double): C = fromVector3(
+      (toVector3(c1) * w1) + (toVector3(c2) * w2)
+    )
 
     inline def hcxmToRGBvalues(hue: Double, c: Double, x: Double, m: Double): ARRAY[Double] = {
       val X = x + m

@@ -93,10 +93,10 @@ trait RGBA32 extends DiscreteRGB { self: WorkingSpace =>
     }
 
     override def weightedAverage(c1: RGBA32, w1: Double, c2: RGBA32, w2: Double): RGBA32 = RGBA32(
-      (((c1.red * w1) + (c2.red * w2)) / 2.0).toInt,
-      (((c1.green * w1) + (c2.green * w2)) / 2.0).toInt,
-      (((c1.blue * w1) + (c2.blue * w2)) / 2.0).toInt,
-      (((c1.alpha * w1) + (c2.alpha * w2)) / 2.0).toInt
+      ((c1.red * w1) + (c2.red * w2)).toInt,
+      ((c1.green * w1) + (c2.green * w2)).toInt,
+      ((c1.blue * w1) + (c2.blue * w2)).toInt,
+      ((c1.alpha * w1) + (c2.alpha * w2)).toInt
     )
 
     override def fromXYZ(xyz: XYZ): RGBA32 = fromRGB(xyz.toRGB)

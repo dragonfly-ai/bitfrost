@@ -19,7 +19,6 @@ trait DiscreteRGB {
     def green: Int
 
     def blue: Int
-
   }
 
 
@@ -30,9 +29,7 @@ trait DiscreteRGB {
 
     override lazy val maxDistanceSquared: Double = 3 * squareInPlace(MAXD)
 
-    override def similarity(c1: C, c2: C): Double = {
-      1.0 - Math.sqrt((squareInPlace(c1.red - c2.red) + squareInPlace(c1.green - c2.green) + squareInPlace(c1.blue - c2.blue)) / maxDistanceSquared)
-    }
+    override def distanceSquared(c1: C, c2: C): Double = squareInPlace(c1.red - c2.red) + squareInPlace(c1.green - c2.green) + squareInPlace(c1.blue - c2.blue)
 
     inline def valid(intensity: Int): Boolean = intensity >= min && intensity <= MAX
 

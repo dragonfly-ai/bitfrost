@@ -91,10 +91,10 @@ trait ARGB64 extends DiscreteRGB { self: WorkingSpace =>
     override def fromRGB(rgb: RGB): ARGB64 = clamp(rgb.red * MAX, rgb.green * MAX, rgb.blue * MAX)
 
     override def weightedAverage(c1: ARGB64, w1: Double, c2: ARGB64, w2: Double): ARGB64 = ARGB64(
-      (((c1.alpha * w1) + (c2.alpha * w2)) / 2.0).toInt,
-      (((c1.red * w1) + (c2.red * w2)) / 2.0).toInt,
-      (((c1.green * w1) + (c2.green * w2)) / 2.0).toInt,
-      (((c1.blue * w1) + (c2.blue * w2)) / 2.0).toInt
+      ((c1.alpha * w1) + (c2.alpha * w2)).toInt,
+      ((c1.red * w1) + (c2.red * w2)).toInt,
+      ((c1.green * w1) + (c2.green * w2)).toInt,
+      ((c1.blue * w1) + (c2.blue * w2)).toInt
     )
 
     /**

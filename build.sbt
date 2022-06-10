@@ -8,13 +8,14 @@ lazy val bitfrost = crossProject(JSPlatform, JVMPlatform).settings(
   version := "0.0.01",
   organization := "ai.dragonfly.code",
   resolvers += "dragonfly.ai" at "https://code.dragonfly.ai/",
-  libraryDependencies += "ai.dragonfly.code" %%% "matrix" % "0.331.525",
+  libraryDependencies += "ai.dragonfly.code" %%% "matrix" % "0.331.526",
   scalacOptions ++= Seq("-feature", "-deprecation"),
 ).jsSettings().jvmSettings()
 
-lazy val demo = project.enablePlugins(ScalaJSPlugin).dependsOn(bitfrost.projects(JSPlatform)).settings(
+lazy val demo = crossProject(JSPlatform, JVMPlatform).dependsOn(bitfrost).settings(
   name := "demo",
   Compile / mainClass := Some("Demo"),
   libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.11.1",
+).jsSettings(
   scalaJSUseMainModuleInitializer := true
-)
+).jvmSettings()
