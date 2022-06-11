@@ -14,7 +14,8 @@ lazy val bitfrost = crossProject(JSPlatform, JVMPlatform).settings(
 
 lazy val demo = crossProject(JSPlatform, JVMPlatform).dependsOn(bitfrost).settings(
   name := "demo",
-  Compile / mainClass := Some("Demo"),
+  // Compile / mainClass := Some("Demo"),
+  Compile / mainClass := Some("DyeMC"),
   libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.11.1",
 ).jsSettings(
   scalaJSUseMainModuleInitializer := true
