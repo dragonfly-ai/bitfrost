@@ -123,6 +123,8 @@ function init() {
   if (space === "XYZ") dXZ = scale * 0.5;
   // PLY file
 
+  const cageMaterial = new THREE.MeshBasicMaterial( { vertexColors: true, transparent: true, opacity: 0.1, side: THREE.BackSide } );
+
   const loader = new PLYLoader();
   loader.load( visible, function ( geometry ) {
 
@@ -154,7 +156,7 @@ function init() {
             cageGeometry.computeVertexNormals();
             cageGeometry.translate(offset.x, offset.y, offset.z);
 
-            const cageMaterial = new THREE.MeshBasicMaterial( { vertexColors: true, wireframe: true, transparent: true, opacity: 0.05, emissive: 0x444444 } ); //
+            //const cageMaterial = new THREE.MeshBasicMaterial( { vertexColors: true, wireframe: true, transparent: true, opacity: 0.05, emissive: 0x444444 } ); //
             const cageMesh = new THREE.Mesh( cageGeometry, cageMaterial );
 
             cageMesh.rotation.z = Math.PI / 2;
@@ -176,16 +178,8 @@ function init() {
 
   } );
 
+  // No Lights!
 
-
-  // Lights
-  scene.add( new THREE.AmbientLight( 0xffffff ) );
-/*
-  scene.add( new THREE.HemisphereLight( 0xffffff, 0xffffff ) );
-
-  addShadowedLight( 1, 1, 1, 0xffffff, 1.35 );
-  addShadowedLight( 0.5, 1, - 1, 0xffaa00, 1 );
-*/
   // renderer
 
   renderer = new THREE.WebGLRenderer( { antialias: true } );

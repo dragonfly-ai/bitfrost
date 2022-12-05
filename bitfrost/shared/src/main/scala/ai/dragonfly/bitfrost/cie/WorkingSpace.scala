@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.cie
 
-import bridge.array.*
+import narr.*
 import ai.dragonfly.math.*
 import vector.*
 import matrix.*
@@ -53,11 +53,11 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
   }
 
   trait CylindricalModel[C <: CylindricalModel[C]] extends Model[C] {
-    val values:ARRAY[Double]
+    val values:NArray[Double]
   }
 
   trait VectorModel[C <: VectorModel[C]] extends Model[C] with Vector {
-    val values:ARRAY[Double]
+    val values:NArray[Double]
   }
 
   trait PerceptualModel[C <: PerceptualModel[C]] extends VectorModel[C] {
@@ -117,19 +117,18 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
      */
     def weightedAverage(c1: C, w1: Double, c2: C, w2: Double): C = ((c1 * w1) + (c2 * w2)).asInstanceOf[C]
 
-    def apply(values:ARRAY[Double]):C
+    def apply(values:NArray[Double]):C
 
     override def distanceSquared(c1: C, c2: C): Double = c1.euclid.distanceSquaredTo(c2)
 
     override def fromVector3(v: Vector3): C = apply(v.copy().values)
-
     override def toVector3(c: C): Vector3 = Vector3(c.values)
   }
 
 
   trait PerceptualSpace[C <: PerceptualModel[C]] extends VectorSpace[C] {
 
-    def apply(values: ARRAY[Double]): C
+    def apply(values: NArray[Double]): C
 
     def apply(c1: Double, c2: Double, c3: Double): C
 
@@ -141,7 +140,7 @@ trait WorkingSpace extends XYZ with RGB with Gamut {
 
     override def random(r: Random = ai.dragonfly.math.Random.defaultRandom): C = {
       val v = gamut.random(r)
-      apply(v.x, v.y, v.z)
+      apply(v.values)
     }
 
   }

@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.color.model.perceptual
 
-import bridge.array.*
+import narr.*
 import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.cie.Constant.*
@@ -12,7 +12,7 @@ trait Lab { self: WorkingSpace =>
 
   object Lab extends PerceptualSpace[Lab] {
 
-    def apply(values: ARRAY[Double]): Lab = new Lab(dimensionCheck(values, 3))
+    def apply(values: NArray[Double]): Lab = new Lab(dimensionCheck(values, 3))
 
     /**
      * @param L the L* component of the CIE L*a*b* color.
@@ -21,7 +21,7 @@ trait Lab { self: WorkingSpace =>
      * @return an instance of the LAB case class.
      * @example {{{ val c = LAB(72.872, -0.531, 71.770) }}}
      */
-    def apply(L: Double, a: Double, b: Double): Lab = apply(ARRAY[Double](L, a, b))
+    def apply(L: Double, a: Double, b: Double): Lab = apply(NArray[Double](a, b, L))
 
     inline def f(t: Double): Double = if (t > ϵ) Math.cbrt(t) else (t * `k/116`) + `16/116`
 
@@ -46,30 +46,30 @@ trait Lab { self: WorkingSpace =>
 //    override def toString:String = s"${illuminant}L*a*b*"
   }
 
-  case class Lab private(override val values: ARRAY[Double]) extends PerceptualModel[Lab] {
+  case class Lab private(override val values: NArray[Double]) extends PerceptualModel[Lab] {
     override type VEC = this.type with Lab
 
-    override def copy(): VEC = new Lab(ARRAY[Double](L, a, b)).asInstanceOf[VEC]
+    override def copy(): VEC = new Lab(NArray[Double](a, b, L)).asInstanceOf[VEC]
 
-    inline def L: Double = values(0)
+    inline def L: Double = values(2)
 
-    inline def a: Double = values(1)
+    inline def a: Double = values(0)
 
-    inline def b: Double = values(2)
+    inline def b: Double = values(1)
 
     inline def fInverse(t: Double): Double = if (t > `∛ϵ`) cubeInPlace(t) else (`116/k` * t) - `16/k`
 
     def toXYZ: XYZ = {
-      val white: XYZ = XYZ(illuminant.whitePointValues)
+      //val white: XYZ = whitePoint //XYZ(illuminant.whitePointValues)
       val fy: Double = `1/116` * (L + 16.0)
 
       XYZ(
-        fInverse((0.002 * a) + fy) * white.x, // X
+        fInverse((0.002 * a) + fy) * illuminant.xₙ, // X
         (if (L > kϵ) {
           val l = L + 16.0;
           `1/116³` * (l * l * l)
-        } else `1/k` * L) * white.y, // Y
-        fInverse(fy - (0.005 * b)) * white.z, // X
+        } else `1/k` * L) * illuminant.yₙ, // Y
+        fInverse(fy - (0.005 * b)) * illuminant.zₙ, // Z
       )
     }
 

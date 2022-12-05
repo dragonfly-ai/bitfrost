@@ -1,6 +1,6 @@
 package ai.dragonfly
 
-import bridge.array.*
+import narr.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
 import ai.dragonfly.bitfrost.color.model.huesat.{HSL, HSV}
@@ -23,11 +23,11 @@ package object bitfrost {
     inline def valid0to1(i0: Double, i1: Double, i2: Double, i3: Double):Boolean = valid0to1(i0) && valid0to1(i1) && valid0to1(i2) && valid0to1(i3)
 
     inline def clamp0to1(i: Double): Double = Math.min(1.0, Math.max(0.0, i))
-    inline def clamp0to1(i0: Double, i1: Double, i2: Double):ARRAY[Double] = {
-      ARRAY[Double](clamp0to1(i0), clamp0to1(i1), clamp0to1(i2))
+    inline def clamp0to1(i0: Double, i1: Double, i2: Double):NArray[Double] = {
+      NArray[Double](clamp0to1(i0), clamp0to1(i1), clamp0to1(i2))
     }
-    inline def clamp0to1(i0: Double, i1: Double, i2: Double, i3: Double):ARRAY[Double] = {
-      ARRAY[Double](clamp0to1(i0), clamp0to1(i1), clamp0to1(i2), clamp0to1(i3))
+    inline def clamp0to1(i0: Double, i1: Double, i2: Double, i3: Double):NArray[Double] = {
+      NArray[Double](clamp0to1(i0), clamp0to1(i1), clamp0to1(i2), clamp0to1(i3))
     }
   }
 
@@ -82,10 +82,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D65
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](1.93939393939394, 1.0, 0.090909090909091),
-        ARRAY[Double](0.295774647887324, 1.0, 0.112676056338028),
-        ARRAY[Double](2.5, 1.0, 13.1666666666667)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](1.93939393939394, 1.0, 0.090909090909091),
+        NArray[Double](0.295774647887324, 1.0, 0.112676056338028),
+        NArray[Double](2.5, 1.0, 13.1666666666667)
       ))
     }
     // Apple RGB
@@ -100,10 +100,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D65
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](1.83823529411765, 1.0, 0.102941176470588),
-        ARRAY[Double](0.470588235294118, 1.0, 0.210084033613445),
-        ARRAY[Double](2.21428571428571, 1.0, 11.0714285714286)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](1.83823529411765, 1.0, 0.102941176470588),
+        NArray[Double](0.470588235294118, 1.0, 0.210084033613445),
+        NArray[Double](2.21428571428571, 1.0, 11.0714285714286)
       ))
     }
     // Best RGB
@@ -118,10 +118,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D50
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](2.76931775348662, 1.0, 0.0),
-        ARRAY[Double](0.27741935483871, 1.0, 0.012903225806452),
-        ARRAY[Double](3.71428571428571, 1.0, 23.8571428571429)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](2.76931775348662, 1.0, 0.0),
+        NArray[Double](0.27741935483871, 1.0, 0.012903225806452),
+        NArray[Double](3.71428571428571, 1.0, 23.8571428571429)
       ))
     }
 
@@ -136,10 +136,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D50
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](2.2133676092545, 1.0, 0.0),
-        ARRAY[Double](0.263011521652761, 1.0, 0.061316381936167),
-        ARRAY[Double](3.59375, 1.0, 23.8153409090909)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](2.2133676092545, 1.0, 0.0),
+        NArray[Double](0.263011521652761, 1.0, 0.061316381936167),
+        NArray[Double](3.59375, 1.0, 23.8153409090909)
       ))
     }
 
@@ -154,10 +154,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D65
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](1.93939393939394, 1.0, 0.090909090909091),
-        ARRAY[Double](0.430769230769231, 1.0, 0.107692307692308),
-        ARRAY[Double](2.5, 1.0, 13.1666666666667)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](1.93939393939394, 1.0, 0.090909090909091),
+        NArray[Double](0.430769230769231, 1.0, 0.107692307692308),
+        NArray[Double](2.5, 1.0, 13.1666666666667)
       ))
     }
 
@@ -172,10 +172,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = E
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](2.77358490566038, 1.0, 0.0),
-        ARRAY[Double](0.382147838214784, 1.0, 0.01255230125523),
-        ARRAY[Double](18.5555555555556, 1.0, 91.5555555555556)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](2.77358490566038, 1.0, 0.0),
+        NArray[Double](0.382147838214784, 1.0, 0.01255230125523),
+        NArray[Double](18.5555555555556, 1.0, 91.5555555555556)
       ))
     }
 
@@ -190,10 +190,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D50
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](1.85294117647059, 1.0, 0.088235294117647),
-        ARRAY[Double](0.487603305785124, 1.0, 0.165289256198347),
-        ARRAY[Double](2, 1.0, 10.3333333333333)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](1.85294117647059, 1.0, 0.088235294117647),
+        NArray[Double](0.487603305785124, 1.0, 0.165289256198347),
+        NArray[Double](2, 1.0, 10.3333333333333)
       ))
     }
 
@@ -208,10 +208,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D50
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](2.32, 1.0, 0.013333333333333),
-        ARRAY[Double](0.281045751633987, 1.0, 0.026143790849673),
-        ARRAY[Double](3.71428571428571, 1.0, 23.8571428571429)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](2.32, 1.0, 0.013333333333333),
+        NArray[Double](0.281045751633987, 1.0, 0.026143790849673),
+        NArray[Double](3.71428571428571, 1.0, 23.8571428571429)
       ))
     }
 
@@ -226,10 +226,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D50
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](2.03030303030303, 1.0, 0.0),
-        ARRAY[Double](0.295774647887324, 1.0, 0.112676056338028),
-        ARRAY[Double](1.75, 1.0, 9.75)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](2.03030303030303, 1.0, 0.0),
+        NArray[Double](0.295774647887324, 1.0, 0.112676056338028),
+        NArray[Double](1.75, 1.0, 9.75)
       ))
     }
 
@@ -244,10 +244,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D50
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](2.27868852459016, 1.0, 0.0),
-        ARRAY[Double](0.371428571428571, 1.0, 0.057142857142857),
-        ARRAY[Double](22, 1.0, 177)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](2.27868852459016, 1.0, 0.0),
+        NArray[Double](0.371428571428571, 1.0, 0.057142857142857),
+        NArray[Double](22, 1.0, 177)
       ))
     }
 
@@ -262,10 +262,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = C
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](2.03030303030303, 1.0, 0.0),
-        ARRAY[Double](0.295774647887324, 1.0, 0.112676056338028),
-        ARRAY[Double](1.75, 1.0, 9.75)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](2.03030303030303, 1.0, 0.0),
+        NArray[Double](0.295774647887324, 1.0, 0.112676056338028),
+        NArray[Double](1.75, 1.0, 9.75)
       ))
 
       override val cmf: SampleSet = CIE1931_2deg_5nm
@@ -283,10 +283,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D65
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](1.93939393939394, 1.0, 0.090909090909091),
-        ARRAY[Double](0.483333333333333, 1.0, 0.183333333333333),
-        ARRAY[Double](2.5, 1.0, 13.1666666666667)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](1.93939393939394, 1.0, 0.090909090909091),
+        NArray[Double](0.483333333333333, 1.0, 0.183333333333333),
+        NArray[Double](2.5, 1.0, 13.1666666666667)
       ))
     }
 
@@ -303,10 +303,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D50
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](2.76931775348662, 1.0, 0.0),
-        ARRAY[Double](0.189909566872918, 1.0, 0.0),
-        ARRAY[Double](366.0, 1.0, 9633.0)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](2.76931775348662, 1.0, 0.0),
+        NArray[Double](0.189909566872918, 1.0, 0.0),
+        NArray[Double](366.0, 1.0, 9633.0)
       ))
     }
 
@@ -322,10 +322,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D65
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](1.85294117647059, 1.0, 0.088235294117647),
-        ARRAY[Double](0.521008403361345, 1.0, 0.159663865546218),
-        ARRAY[Double](2.21428571428571, 1.0, 11.0714285714286)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](1.85294117647059, 1.0, 0.088235294117647),
+        NArray[Double](0.521008403361345, 1.0, 0.159663865546218),
+        NArray[Double](2.21428571428571, 1.0, 11.0714285714286)
       ))
 
       override val cmf: SampleSet = CIE1931_2deg_5nm
@@ -342,10 +342,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D65
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](1.93939393939394, 1.0, 0.090909090909091),
-        ARRAY[Double](0.5, 1.0, 0.166666666666667),
-        ARRAY[Double](2.5, 1.0, 13.1666666666667)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](1.93939393939394, 1.0, 0.090909090909091),
+        NArray[Double](0.5, 1.0, 0.166666666666667),
+        NArray[Double](2.5, 1.0, 13.1666666666667)
       ))
       override val cmf: SampleSet = CIE1931_2deg_5nm
     }
@@ -361,10 +361,10 @@ package object bitfrost {
 
       override val illuminant: Illuminant = D50
 
-      val verificationMatrix: Matrix = Matrix(ARRAY[ARRAY[Double]](
-        ARRAY[Double](2.77358490566038, 1.0, 0.0),
-        ARRAY[Double](0.139225181598063, 1.0, 0.071428571428571),
-        ARRAY[Double](8.72222222222222, 1.0, 45.8333333333333)
+      val verificationMatrix: Matrix = Matrix(NArray[NArray[Double]](
+        NArray[Double](2.77358490566038, 1.0, 0.0),
+        NArray[Double](0.139225181598063, 1.0, 0.071428571428571),
+        NArray[Double](8.72222222222222, 1.0, 45.8333333333333)
       ))
     }
 

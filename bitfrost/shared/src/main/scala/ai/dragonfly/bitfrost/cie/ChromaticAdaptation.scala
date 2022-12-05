@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.cie
 
-import bridge.array.*
+import narr.*
 import ai.dragonfly.math.vector.*
 import util.*
 import ai.dragonfly.math.matrix
@@ -19,33 +19,33 @@ object ChromaticAdaptation {
   lazy val XYZ_Scaling_Inverse: Matrix = XYZ_Scaling
 
   lazy val Bradford: Matrix = Matrix(
-    ARRAY[ARRAY[Double]](
-      ARRAY[Double](0.8951, 0.2664, -0.1614),
-      ARRAY[Double](-0.7502, 1.7135, 0.0367),
-      ARRAY[Double](0.0389, -0.0685, 1.0296)
+    NArray[NArray[Double]](
+      NArray[Double](0.8951, 0.2664, -0.1614),
+      NArray[Double](-0.7502, 1.7135, 0.0367),
+      NArray[Double](0.0389, -0.0685, 1.0296)
     )
   )
 
   lazy val Bradford_Inverse: Matrix = Matrix(
-    ARRAY[ARRAY[Double]](
-      ARRAY[Double](0.9869929, -0.1470543, 0.1599627),
-      ARRAY[Double](0.4323053, 0.5183603, 0.0492912),
-      ARRAY[Double](-0.0085287, 0.0400428, 0.9684867)
+    NArray[NArray[Double]](
+      NArray[Double](0.9869929, -0.1470543, 0.1599627),
+      NArray[Double](0.4323053, 0.5183603, 0.0492912),
+      NArray[Double](-0.0085287, 0.0400428, 0.9684867)
     )
   )
 
   lazy val Von_Kries: Matrix = Matrix(
-    ARRAY[ARRAY[Double]](
-      ARRAY[Double](0.40024, 0.7076, -0.08081),
-      ARRAY[Double](-0.2263, 1.16532, 0.0457),
-      ARRAY[Double](0.0, 0.0, 0.91822)
+    NArray[NArray[Double]](
+      NArray[Double](0.40024, 0.7076, -0.08081),
+      NArray[Double](-0.2263, 1.16532, 0.0457),
+      NArray[Double](0.0, 0.0, 0.91822)
     )
   )
   lazy val Von_Kries_Inverse: Matrix = Matrix(
-    ARRAY[ARRAY[Double]](
-      ARRAY[Double](1.8599364, -1.1293816, 0.2198974),
-      ARRAY[Double](0.3611914, 0.6388125, -0.0000064),
-      ARRAY[Double](0.0, 0.0, 1.0890636)
+    NArray[NArray[Double]](
+      NArray[Double](1.8599364, -1.1293816, 0.2198974),
+      NArray[Double](0.3611914, 0.6388125, -0.0000064),
+      NArray[Double](0.0, 0.0, 1.0890636)
     )
   )
 
@@ -53,15 +53,15 @@ object ChromaticAdaptation {
 
 case class ChromaticAdaptation[S <: WorkingSpace, T <: WorkingSpace](source:S, target:T, m:Matrix = Bradford) {
 
-  val s:ARRAY[Double] = (m * source.illuminant.asColumnMatrix).getRowPackedCopy()
+  val s:NArray[Double] = (m * source.illuminant.asColumnMatrix).getRowPackedCopy()
 
-  val t:ARRAY[Double] = (m * target.illuminant.asColumnMatrix).getRowPackedCopy()
+  val t:NArray[Double] = (m * target.illuminant.asColumnMatrix).getRowPackedCopy()
 
   val M:Matrix = m.inverse().times(Matrix(
-    ARRAY[ARRAY[Double]](
-      ARRAY[Double]( t(0) / s(0), 0.0, 0.0),
-      ARRAY[Double]( 0.0, t(1) / s(1), 0.0),
-      ARRAY[Double]( 0.0, 0.0, t(2) / s(2))
+    NArray[NArray[Double]](
+      NArray[Double]( t(0) / s(0), 0.0, 0.0),
+      NArray[Double]( 0.0, t(1) / s(1), 0.0),
+      NArray[Double]( 0.0, 0.0, t(2) / s(2))
     )).times(m)
   )
 

@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.cie
 
-import bridge.array.*
+import narr.{NArray, *}
 import ai.dragonfly.bitfrost.color.spectral.SampleSet
 import ai.dragonfly.bitfrost.visualization.*
 import ai.dragonfly.math.matrix.ml.unsupervised.dimreduction.PCA
@@ -8,7 +8,7 @@ import ai.dragonfly.math.matrix.ml.data.*
 import ai.dragonfly.math.squareInPlace
 import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
-import ai.dragonfly.math.stats.probability.distributions.stream.StreamingVectorStats
+import ai.dragonfly.math.stats.probability.distributions.stream.{Gaussian, StreamingVectorStats}
 import ai.dragonfly.math.vector.*
 
 import java.io.PrintWriter
@@ -18,12 +18,15 @@ import scala.collection.mutable
 trait Gamut { self: WorkingSpace =>
   object Gamut {
 
-    def computeMaxDistSquared(points: ARRAY[Vector3], mean: Vector3): Double = {
-      val vs: ARRAY[Vector] = new ARRAY[Vector](points.length)
+    def computeMaxDistSquared(points: NArray[Vector3], mean: Vector3): Double = {
 
-      for (i <- points.indices) vs(i) = points(i) - mean
+      val vs: NArray[Vector] = new NArray[Vector](points.length)
+      var i:Int = 0; while (i < points.length) {
+        vs(i) = points(i) - mean
+        i += 1
+      }
 
-      val pca = PCA(StaticUnsupervisedData(vs))
+      val pca = PCA(new StaticUnsupervisedData(vs))
 
       val mode = pca.basisPairs.head.basisVector
 
@@ -49,15 +52,32 @@ trait Gamut { self: WorkingSpace =>
 
     }
 
-    def fromRGB(n: Int = 64, transform: XYZ => Vector3 = (v: XYZ) => Vector3(v.values)): Gamut = {
+    def fromRGB(n: Int = 32, transform: XYZ => Vector3 = (v: XYZ) => Vector3(v.values)): Gamut = {
 
-      val mesh: VolumeMesh = VolumeMesh.cube(1.0, n)
+      val m1: VolumeMesh = VolumeMesh.cube(1.0, n)
+
+      val m2: VolumeMesh = VolumeMesh(
+        NArray.tabulate[Vector3](m1.vertices.length)((i:Int) => {m1.vertices(i) * 255.0}),
+        m1.triangles
+      )
+
+      val m3: VolumeMesh = VolumeMesh(
+        m1.vertices.map((vRGB:Vector3) => transform(RGB(vRGB.values).toXYZ)),
+        m1.triangles
+      )
+
+      val sg:Gaussian = Gaussian()
+
+      var i:Int = 0; while (i < m1.triangles.length) {
+        val t:IndexTriangle = m1.triangles(i)
+        sg.observe( Math.sqrt( t.area(m3.vertices) / t.area(m2.vertices) ) )
+        i += 1
+      }
+
+      println(s"$ctx triangle stretch stats: ${sg.estimate}")
 
       new Gamut(
-        VolumeMesh(
-          mesh.vertices.map((vRGB:Vector3) => transform(RGB(vRGB.values).toXYZ)),
-          mesh.triangles
-        )
+        m3
       )
     }
 
@@ -73,7 +93,7 @@ trait Gamut { self: WorkingSpace =>
 
     def fromSpectralSamples(spectralSamples: SampleSet, transform: Vector3 => Vector3 = (v: Vector3) => v): Gamut = {
 
-      val points: ARRAY[Vector3] = ARRAY.tabulate[Vector3](spectralSamples.volumePoints.length)(
+      val points: NArray[Vector3] = NArray.tabulate[Vector3](spectralSamples.volumePoints.length)(
         (i:Int)=> transform(spectralSamples.volumePoints(i))
       )
 
@@ -128,14 +148,14 @@ trait Gamut { self: WorkingSpace =>
   case class Gamut (volumeMesh:VolumeMesh) extends Sampleable[Vector3] {
 
     val mean: Vector3 = {
-      val sv2 = new StreamingVectorStats(3)
+      val sv2:StreamingVectorStats[Vector3] = new StreamingVectorStats[Vector3](3)
       volumeMesh.vertices.foreach((p:Vector3) => sv2(p))
       Vector3(sv2.average().values)
     }
 
     val maxDistSquared: Double = Gamut.computeMaxDistSquared(volumeMesh.vertices, mean)
 
-    val tetrahedra: Array[Tetrahedron] = Array.tabulate[Tetrahedron](volumeMesh.triangles.length)((i:Int) => {
+    val tetrahedra: NArray[Tetrahedron] = NArray.tabulate[Tetrahedron](volumeMesh.triangles.length)((i:Int) => {
       val t: IndexTriangle = volumeMesh.triangles(i)
       Tetrahedron(
         mean,
@@ -145,13 +165,16 @@ trait Gamut { self: WorkingSpace =>
       )
     })
 
-    val cumulative: Array[Double] = {
+    val cumulative: NArray[Double] = {
       var totalVolume: Double = 0.0
-      val ca:Array[Double] = Array.tabulate[Double](volumeMesh.triangles.length)((i:Int) => {
+      val ca:NArray[Double] = NArray.tabulate[Double](volumeMesh.triangles.length)((i:Int) => {
         totalVolume += tetrahedra(i).volume
         totalVolume
       })
-      for (i <- ca.indices) ca(i) = ca(i) / totalVolume
+      var i:Int = 0; while (i < ca.length) {
+        ca(i) = ca(i) / totalVolume
+        i += 1
+      }
       ca
     }
 

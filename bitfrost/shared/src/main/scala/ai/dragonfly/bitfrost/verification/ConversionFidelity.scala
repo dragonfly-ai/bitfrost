@@ -26,71 +26,73 @@ object ConversionFidelity extends App {
           val c = ARGB32(255, red, green, blue)
           // ARGB -> RGB -> ARGB
           val rgb = c.toRGB
-          var err = c.similarity(ARGB32.fromRGB(rgb))
-          if (err != 1.0) {
+          var err = 1.0 - c.similarity(ARGB32.fromRGB(rgb))
+          if (err != 0.0) {
             println(s"$c ${ARGB32.fromRGB(rgb)} $err")
             `error(ARGB32<->RGB)` += err
           }
           // ARGB -> RGB -> ARGB
           val rgba: RGBA32 = RGBA32.fromRGB(rgb)
-          err = c.similarity(ARGB32.fromRGB(rgba.toRGB))
-          if (err != 1.0) {
+          err = 1.0 - c.similarity(ARGB32.fromRGB(rgba.toRGB))
+          if (err != 0.0) {
             println(s"$c $err")
             `error(ARGB32<->RGBA32)` += err
           }
           // ARGB -> RGB -> CMY -> RGB -> ARGB
           val cmy = CMY.fromRGB(rgb)
           var cT = ARGB32.fromRGB(cmy.toRGB)
-          err = c.similarity(cT)
-          if (err != 1.0) {
+          err = 1.0 - c.similarity(cT)
+          if (err != 0.0) {
             println(s"$c -> $cmy -> $cT: $err")
             `error(RGB<->CMY)` += err
           }
           // ARGB -> RGB -> CMYK -> RGB -> ARGB
           val cmyk = CMYK.fromRGB(rgb)
           cT = ARGB32.fromRGB(cmyk.toRGB)
-          err = c.similarity(cT)
-          if (err != 1.0) {
+          err = 1.0 - c.similarity(cT)
+          if (err != 0.0) {
             println(s"$c -> $cmyk -> $cT: $err")
             `error(RGB<->CMYK)` += err
           }
           // ARGB -> RGB -> HSV -> RGB -> ARGB
           val hsv = HSV.fromRGB(rgb)
           cT = ARGB32.fromRGB(hsv.toRGB)
-          err = c.similarity(cT)
-          if (err != 1.0) {
+          err = 1.0 - c.similarity(cT)
+          if (err != 0.0) {
             println(s"$c -> $hsv -> $cT: $err")
             `error(RGB<->HSV)` += err
           }
           // ARGB -> RGB -> HSL -> RGB -> ARGB
           val hsl = HSL.fromRGB(rgb)
           cT = ARGB32.fromRGB(hsl.toRGB)
-          err = c.similarity(cT)
-          if (err != 1.0) {
+          err = 1.0 - c.similarity(cT)
+          if (err != 0.0) {
             println(s"$c -> $hsl -> $cT: $err")
             `error(RGB<->HSL)` += err
           }
           // ARGB -> RGB -> XYZ -> RGB -> ARGB
           val xyz = rgb.toXYZ
           cT = ARGB32.fromRGB(RGB.fromXYZ(xyz))
-          err = c.similarity(cT)
-          if (err != 1.0) {
+          err = 1.0 - c.similarity(cT)
+          if (err != 0.0) {
             println(s"$c -> $xyz -> $cT: $err")
             `error(RGB<->XYZ)` += err
           }
           // ARGB -> RGB -> XYZ -> Lab -> XYZ -> RGB -> ARGB
           val lab = Lab.fromXYZ(xyz)
+
           cT = ARGB32.fromRGB(RGB.fromXYZ(lab.toXYZ))
-          err = c.similarity(cT)
-          if (err != 1.0) {
+          err = 1.0 - c.similarity(cT)
+          if (err != 0.0) {
             println(s"$c -> $lab -> $cT: $err")
             `error(RGB<->Lab)` += err
           }
+
           // ARGB -> RGB -> XYZ -> Luv -> XYZ -> RGB -> ARGB
           val luv = Luv.fromXYZ(xyz)
           cT = ARGB32.fromRGB(RGB.fromXYZ(luv.toXYZ))
-          err = c.similarity(cT)
-          if (err != 1.0) {
+          err = 1.0 - c.similarity(cT)
+          if (err != 0.0) {
             println(s"$c -> $luv -> $cT: $err")
             `error(RGB<->Luv)` += err
           }

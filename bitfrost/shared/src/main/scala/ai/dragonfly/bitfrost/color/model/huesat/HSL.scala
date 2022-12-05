@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.color.model.huesat
 
-import bridge.array.*
+import narr.*
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
@@ -11,9 +11,9 @@ import ai.dragonfly.math.vector.*
 trait HSL extends HueSaturation { self: WorkingSpace =>
   object HSL extends HueSaturationSpace[HSL] {
 
-    def apply(values: ARRAY[Double]): HSL = new HSL(dimensionCheck(values, 3))
+    def apply(values: NArray[Double]): HSL = new HSL(dimensionCheck(values, 3))
 
-    def clamp(values: ARRAY[Double]): HSL = {
+    def clamp(values: NArray[Double]): HSL = {
       dimensionCheck(values, 3)
       clamp(values(0), values(1), values(2))
     }
@@ -35,11 +35,11 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
      * }}}
      */
     def apply(hue: Double, saturation: Double, lightness: Double): HSL = new HSL(
-      ARRAY[Double](hue, saturation, lightness)
+      NArray[Double](hue, saturation, lightness)
     )
 
     def clamp(hue: Double, saturation: Double, lightness: Double): HSL = new HSL(
-      ARRAY[Double](
+      NArray[Double](
         clampHue(hue),
         clamp0to1(saturation),
         clamp0to1(lightness)
@@ -62,8 +62,8 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
       else None
     }
 
-    inline def toHSL(red: Double, green: Double, blue: Double): ARRAY[Double] = {
-      val values: ARRAY[Double] = hueMinMax(red, green, blue)
+    inline def toHSL(red: Double, green: Double, blue: Double): NArray[Double] = {
+      val values: NArray[Double] = hueMinMax(red, green, blue)
 
       val delta: Double = values(2 /*MAX*/) - values(1 /*min*/)
       val L: Double = (values(1 /*min*/) + values(2 /*MAX*/))
@@ -74,7 +74,7 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
     }
 
     override def random(r: scala.util.Random = Random.defaultRandom): HSL = apply(
-      ARRAY[Double](
+      NArray[Double](
         r.nextDouble() * 360.0,
         r.nextDouble(),
         r.nextDouble()
@@ -83,7 +83,7 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
 
   }
 
-  case class HSL private(override val values: ARRAY[Double]) extends HueSaturation[HSL] {
+  case class HSL private(override val values: NArray[Double]) extends HueSaturation[HSL] {
 
     inline def hue: Double = values(0)
 
@@ -93,7 +93,7 @@ trait HSL extends HueSaturation { self: WorkingSpace =>
 
     override def similarity(that: HSL): Double = HSL.similarity(this, that)
 
-    def copy(): HSL = new HSL(ARRAY[Double](hue, saturation, lightness))
+    def copy(): HSL = new HSL(NArray[Double](hue, saturation, lightness))
 
     def toRGB: RGB = {
       // https://www.rapidtables.com/convert/color/hsl-to-rgb.html

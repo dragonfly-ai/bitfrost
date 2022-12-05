@@ -1,7 +1,7 @@
 package ai.dragonfly.bitfrost.color.spectral
 
 import ai.dragonfly.math.vector.Vector3
-
+import narr.*
 /**
  * CIE 1931 CMF data revised by Judd in 1951 and Vos in 1978
  * 5 nano meter wavelength steps
@@ -9,7 +9,7 @@ import ai.dragonfly.math.vector.Vector3
  */
 
 object CIE1931_JUDD1951_VOS1978_2deg_5nm extends SampleSet {
-  override val samples:Array[Sample] = Array[Sample](
+  override val samples:NArray[Sample] = NArray[Sample](
     Sample(360, Vector3(1.222E-07, 1.3398E-08, 5.35027E-07)),
       Sample(365, Vector3(9.1927E-07, 1.0065E-07, 4.0283E-06)),
       Sample(370, Vector3(5.9586E-06, 6.511E-07, 2.61437E-05)),

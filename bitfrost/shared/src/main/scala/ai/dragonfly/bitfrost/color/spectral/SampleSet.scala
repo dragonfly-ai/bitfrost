@@ -2,18 +2,18 @@ package ai.dragonfly.bitfrost.color.spectral
 
 import ai.dragonfly.math.squareInPlace
 import ai.dragonfly.math.vector.Vector3
-
+import narr.*
 
 trait SampleSet {
 
-  def samples: Array[Sample]
+  def samples: NArray[Sample]
 
   def sampleCount: Int = samples.length
 
-  lazy val volumePoints:Array[Vector3] = {
+  lazy val volumePoints:NArray[Vector3] = {
 
-    //val points: Array[Vector3] = new Array[Vector3](squareInPlace(samples.length))
-    val points: Array[Vector3] = new Array[Vector3](2 + (samples.length * (samples.length - 1)))
+    //val points: NArray[Vector3] = new NArray[Vector3](squareInPlace(samples.length))
+    val points: NArray[Vector3] = new NArray[Vector3](2 + (samples.length * (samples.length - 1)))
 
     points(0) = Vector3(0.0, 0.0, 0.0)
 

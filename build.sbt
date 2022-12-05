@@ -1,22 +1,31 @@
+ThisBuild / scalaVersion := "3.2.1"
+ThisBuild / publishTo := Some( Resolver.file( "file",  new File("/var/www/maven" ) ) )
+ThisBuild / resolvers += "ai.dragonfly.code" at "https://code.dragonfly.ai/"
+ThisBuild / organization := "ai.dragonfly.code"
+ThisBuild / scalacOptions ++= Seq("-feature", "-deprecation")
 
-ThisBuild / scalaVersion := "3.1.0"
-ThisBuild / publishTo := Some( Resolver.file( "file",  new File("/var/www/maven") ) )
+lazy val bitfrost = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .crossType(CrossType.Full)
+  .settings(
+    name := "bitfrost",
+    version := "0.0.02",
+    Compile / mainClass := Some("ai.dragonfly.bitfrost.verification.ConversionFidelity"),
+    libraryDependencies ++= Seq(
+      "ai.dragonfly.code" %%% "matrix" % "0.41.5401",
+      "ai.dragonfly.code" %%% "spatial" % "0.4.5401",
+      "ai.dragonfly.code" %%% "cliviz" % "0.02.5401"
+    )
+  )
+  .jsSettings()
+  .jvmSettings()
 
-lazy val bitfrost = crossProject(JSPlatform, JVMPlatform).settings(
-  publishTo := Some(Resolver.file("file",  new File( "/var/www/maven" ))),
-  name := "bitfrost",
-  version := "0.0.01",
-  organization := "ai.dragonfly.code",
-  resolvers += "dragonfly.ai" at "https://code.dragonfly.ai/",
-  libraryDependencies += "ai.dragonfly.code" %%% "matrix" % "0.331.526",
-  scalacOptions ++= Seq("-feature", "-deprecation"),
-).jsSettings().jvmSettings()
-
-lazy val demo = crossProject(JSPlatform, JVMPlatform).dependsOn(bitfrost).settings(
-  name := "demo",
-  // Compile / mainClass := Some("Demo"),
-  Compile / mainClass := Some("DyeMC"),
-  libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.11.1",
-).jsSettings(
-  scalaJSUseMainModuleInitializer := true
-).jvmSettings()
+lazy val demo = crossProject(JSPlatform, JVMPlatform, NativePlatform)
+  .crossType(CrossType.Full)
+  .dependsOn(bitfrost)
+  .settings(
+    name := "demo",
+    Compile / mainClass := Some("Demo"),
+    libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.12.0",
+  ).jsSettings(
+    scalaJSUseMainModuleInitializer := true
+  ).jvmSettings()

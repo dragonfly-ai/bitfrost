@@ -1,7 +1,7 @@
 package ai.dragonfly.bitfrost.color.spectral
 
 import ai.dragonfly.math.vector.Vector3
-
+import narr.*
 /**
  * CIE 1931 CMF data revised by Judd in 1951
  * 10 nano meter wavelength steps
@@ -9,7 +9,7 @@ import ai.dragonfly.math.vector.Vector3
  */
 
 object CIE1931_JUDD1951_2deg_10nm extends SampleSet {
-  override val samples:Array[Sample] = Array[Sample](
+  override val samples:NArray[Sample] = NArray[Sample](
     Sample(370, Vector3(0.0008, 0.0001, 0.0046)),
       Sample(380, Vector3(0.0045, 0.0004, 0.0224)),
       Sample(390, Vector3(0.0201, 0.0015, 0.0925)),

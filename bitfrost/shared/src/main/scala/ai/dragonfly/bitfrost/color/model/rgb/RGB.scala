@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.color.model.rgb
 
-import bridge.array.*
+import narr.*
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.color.model.*
@@ -22,7 +22,7 @@ trait RGB { self: WorkingSpace =>
 
     override val maxDistanceSquared: Double = 9.0
 
-    def apply(values: ARRAY[Double]): RGB = new RGB(dimensionCheck(values, 3))
+    def apply(values: NArray[Double]): RGB = new RGB(dimensionCheck(values, 3))
 
     /**
      * Factory method to create a fully opaque RGB instance from separate, specified red, green, blue components and
@@ -37,7 +37,7 @@ trait RGB { self: WorkingSpace =>
      * @return an instance of the RGB case class.
      * @example {{{ val c = RGB(72,105,183) }}}
      */
-    def apply(red: Double, green: Double, blue: Double): RGB = apply(ARRAY[Double](red, green, blue))
+    def apply(red: Double, green: Double, blue: Double): RGB = apply(NArray[Double](red, green, blue))
 
 //    def apply(argb: ARGB32): RGB = apply(`1/255` * argb.red, `1/255` * argb.green, `1/255` * argb.blue)
 //
@@ -76,13 +76,13 @@ trait RGB { self: WorkingSpace =>
      * @return a randomly generated color sampled from the RGB Color Space.
      */
     override def random(r: scala.util.Random = Random.defaultRandom): RGB = apply(
-      ARRAY[Double](r.nextDouble(), r.nextDouble(), r.nextDouble())
+      NArray[Double](r.nextDouble(), r.nextDouble(), r.nextDouble())
     )
 
 
   }
 
-  case class RGB private(override val values: ARRAY[Double]) extends VectorModel[RGB] {
+  case class RGB private(override val values: NArray[Double]) extends VectorModel[RGB] {
     override type VEC = this.type with RGB
 
     inline def red: Double = values(0)
@@ -93,16 +93,16 @@ trait RGB { self: WorkingSpace =>
 
     override val toString: String = s"RGB($red, $green, $blue)"
 
-    override def copy(): VEC = new RGB(ARRAY[Double](red, green, blue)).asInstanceOf[VEC]
+    override def copy(): VEC = new RGB(NArray[Double](red, green, blue)).asInstanceOf[VEC]
 
     def toXYZ: XYZ = XYZ(
       (M * Matrix(
-        ARRAY[ARRAY[Double]](
-          ARRAY[Double](transferFunction.decode(red)),
-          ARRAY[Double](transferFunction.decode(green)),
-          ARRAY[Double](transferFunction.decode(blue))
+        NArray[NArray[Double]](
+          NArray[Double](transferFunction.decode(red)),
+          NArray[Double](transferFunction.decode(green)),
+          NArray[Double](transferFunction.decode(blue))
         )
-      )).getRowPackedCopy().asInstanceOf[ARRAY[Double]]
+      )).getRowPackedCopy().asInstanceOf[NArray[Double]]
     )
 
     override def similarity(that: RGB): Double = RGB.similarity(this, that)

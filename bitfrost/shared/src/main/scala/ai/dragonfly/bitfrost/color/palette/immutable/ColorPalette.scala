@@ -5,6 +5,7 @@ import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.Color
 import ai.dragonfly.math.Euclidean
+import narr.*
 
 import scala.collection.*
 

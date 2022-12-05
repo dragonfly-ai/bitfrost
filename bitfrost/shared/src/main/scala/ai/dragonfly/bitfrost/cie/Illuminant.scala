@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.cie
 
-import bridge.array.*
+import narr.*
 
 import ai.dragonfly.math.matrix.*
 import ai.dragonfly.math.vector.*
@@ -32,12 +32,12 @@ case class Illuminant(xₙ: Double, val yₙ: Double /* Always 1.0? */, zₙ: Do
   lazy val `1/xₙ`: Double = 1.0 / xₙ
   lazy val `1/zₙ`: Double = 1.0 / zₙ
   lazy val `1/yₙ`: Double = 1.0 / yₙ
-  lazy val whitePointValues: ARRAY[Double] = ARRAY[Double](xₙ, yₙ, zₙ)
+  lazy val whitePointValues: NArray[Double] = NArray[Double](xₙ, yₙ, zₙ)
   lazy val asColumnMatrix:Matrix = Matrix(
-    ARRAY[ARRAY[Double]](
-      ARRAY[Double](xₙ),
-      ARRAY[Double](yₙ),
-      ARRAY[Double](zₙ)
+    NArray[NArray[Double]](
+      NArray[Double](xₙ),
+      NArray[Double](yₙ),
+      NArray[Double](zₙ)
     )
   )
 }

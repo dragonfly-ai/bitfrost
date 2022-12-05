@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.cie
 
-import bridge.array.*
+import narr.*
 import ai.dragonfly.math.matrix.*
 import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
 import ai.dragonfly.math.matrix.util.asColumnMatrix
@@ -38,10 +38,10 @@ case class ChromaticityPrimaries(red: ChromaticityPrimary, green: ChromaticityPr
 
   // from http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 
-  def raw(S: ARRAY[Double] = ARRAY[Double](1.0, 1.0, 1.0)):ARRAY[ARRAY[Double]] = ARRAY[ARRAY[Double]](
-    ARRAY[Double]( S(0) * (red.x / red.y)                , S(1) * (green.x / green.y)                  , S(2) * (blue.x / blue.y)                  ),
+  def raw(S: NArray[Double] = NArray[Double](1.0, 1.0, 1.0)):NArray[NArray[Double]] = NArray[NArray[Double]](
+    NArray[Double]( S(0) * (red.x / red.y)                , S(1) * (green.x / green.y)                  , S(2) * (blue.x / blue.y)                  ),
     S,
-    ARRAY[Double]( S(0) * ((1.0 - red.x - red.y) / red.y), S(1) * ((1.0 - green.x - green.y) / green.y), S(2) * ((1.0 - blue.x - blue.y) / blue.y) )
+    NArray[Double]( S(0) * ((1.0 - red.x - red.y) / red.y), S(1) * ((1.0 - green.x - green.y) / green.y), S(2) * ((1.0 - blue.x - blue.y) / blue.y) )
   )
 
   lazy val xyzXrgbInv:Matrix = Matrix(raw()).inverse()

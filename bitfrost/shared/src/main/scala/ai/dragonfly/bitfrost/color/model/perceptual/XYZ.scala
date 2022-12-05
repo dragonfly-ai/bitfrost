@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.color.model.perceptual
 
-import bridge.array.*
+import narr.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.spectral.DEFAULT
 import ai.dragonfly.bitfrost.visualization.VolumeMesh
@@ -26,7 +26,7 @@ trait XYZ { self:WorkingSpace =>
 
   object XYZ extends PerceptualSpace[XYZ] {
 
-    def apply(values: ARRAY[Double]): XYZ = new XYZ(dimensionCheck(values, 3))
+    def apply(values: NArray[Double]): XYZ = new XYZ(dimensionCheck(values, 3))
 
     /**
      * @param L the L* component of the CIE L*a*b* color.
@@ -36,31 +36,34 @@ trait XYZ { self:WorkingSpace =>
      * @example {{{ val c = LAB(72.872, -0.531, 71.770) }}}
      */
 
-    def apply(x: Double, y: Double, z: Double): XYZ = apply(ARRAY[Double](x, y, z))
+    def apply(x: Double, y: Double, z: Double): XYZ = apply(NArray[Double](x, z, y))
 
-    override def fromXYZ(xyz: XYZ): XYZ = apply(xyz.x, xyz.y, xyz.z)
+    override def fromXYZ(xyz: XYZ): XYZ = xyz.copy()
 
   }
 
 
-  case class XYZ private(override val values: ARRAY[Double]) extends PerceptualModel[XYZ] {
+  case class XYZ private(override val values: NArray[Double]) extends PerceptualModel[XYZ] {
     override type VEC = this.type with XYZ
 
-    override def copy(): VEC = new XYZ(ARRAY[Double](x, y, z)).asInstanceOf[VEC]
+    override def copy(): VEC = new XYZ(NArray[Double](x, z, y)).asInstanceOf[VEC]
 
     inline def x: Double = values(0)
 
-    inline def y: Double = values(1)
+    inline def y: Double = values(2)
 
-    inline def z: Double = values(2)
+    inline def z: Double = values(1)
 
     override def similarity(that: XYZ): Double = XYZ.similarity(this, that)
 
     override def toXYZ: XYZ = copy()
 
     override def toRGB:RGB = {
-      val temp: ARRAY[Double] = (M_inverse * Vector3(values).asColumnMatrix).getRowPackedCopy()
-      for (i <- temp.indices) temp(i) = transferFunction.encode(temp(i))
+      val temp: NArray[Double] = (M_inverse * Vector3(values).asColumnMatrix).getRowPackedCopy()
+      var i:Int = 0; while (i < temp.length) {
+        temp(i) = transferFunction.encode(temp(i))
+        i += 1
+      }
       RGB(temp)
     }
 

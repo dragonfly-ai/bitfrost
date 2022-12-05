@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.color.model.perceptual
 
-import bridge.array.*
+import narr.*
 import ai.dragonfly.bitfrost.ColorContext
 import ai.dragonfly.bitfrost.cie.*
 import ai.dragonfly.bitfrost.cie.Constant.*
@@ -40,7 +40,7 @@ trait Luv { self: WorkingSpace =>
 
   object Luv extends PerceptualSpace[Luv] {
 
-    def apply(values: ARRAY[Double]): Luv = new Luv(dimensionCheck(values, 3))
+    def apply(values: NArray[Double]): Luv = new Luv(dimensionCheck(values, 3))
 
     /**
      * @constructor Create a new SlowSlimLuv object from three float values.  This constructor does not validate input parameters.
@@ -51,7 +51,7 @@ trait Luv { self: WorkingSpace =>
      * @example {{{ val c = SlowSlimLuv(14.756, -3.756, -58.528) }}}
      */
 
-    def apply(L: Double, u: Double, v: Double): Luv = apply(ARRAY[Double](L, u, v))
+    def apply(L: Double, u: Double, v: Double): Luv = apply(NArray[Double](u, v, L))
 
     // XYZ to LUV and helpers:
 
@@ -88,18 +88,18 @@ trait Luv { self: WorkingSpace =>
    * @see [[https://en.wikipedia.org/wiki/CIELUV]] for more information on CIE L*u*v*.
    */
 
-  case class Luv private(override val values: ARRAY[Double]) extends PerceptualModel[Luv] {
+  case class Luv private(override val values: NArray[Double]) extends PerceptualModel[Luv] {
     override type VEC = this.type with Luv
 
-    inline def L: Double = values(0)
+    inline def L: Double = values(2)
 
-    inline def u: Double = values(1)
+    inline def u: Double = values(0)
 
-    inline def v: Double = values(2)
+    inline def v: Double = values(1)
 
-    override def toString: String = s"L⭑u⭑v⭑(${L},${u},${v})"
+    override def toString: String = s"L⭑u⭑v⭑($L,$u,$v)"
 
-    override def copy(): VEC = new Luv(ARRAY[Double](L, u, v)).asInstanceOf[VEC]
+    override def copy(): VEC = new Luv(NArray[Double](u, v, L)).asInstanceOf[VEC]
 
     // LUV to XYZ and helpers:
     inline def flInverse(t: Double): Double = if (t > kϵ) {

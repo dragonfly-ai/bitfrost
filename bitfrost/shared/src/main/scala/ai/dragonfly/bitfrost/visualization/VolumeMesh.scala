@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.visualization
 
-import bridge.array.*
+import narr.*
 
 import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.Constant.π
@@ -13,12 +13,12 @@ object VolumeMesh {
 
   inline def nonZeroArea(p0:Vector3, p1:Vector3, p2:Vector3): Boolean = (p1 - p0).cross(p2 - p0).magnitudeSquared > 0
 
-  def corners(l:Double): ARRAY[ARRAY[Vector3]] = ARRAY[ARRAY[Vector3]](
-    ARRAY[Vector3]( Vector3(0, 0, 0), Vector3(l, 0, 0), Vector3(l, l, 0), Vector3(0, l, 0) ),
-    ARRAY[Vector3]( Vector3(0, 0, l), Vector3(l, 0, l), Vector3(l, l, l), Vector3(0, l, l) )
+  def corners(l:Double): NArray[NArray[Vector3]] = NArray[NArray[Vector3]](
+    NArray[Vector3]( Vector3(0, 0, 0), Vector3(l, 0, 0), Vector3(l, l, 0), Vector3(0, l, 0) ),
+    NArray[Vector3]( Vector3(0, 0, l), Vector3(l, 0, l), Vector3(l, l, l), Vector3(0, l, l) )
   )
 
-  def cubePoints(l:Double, n:Int): ARRAY[Vector3] = {
+  def cubePoints(l:Double, n:Int): NArray[Vector3] = {
 
     val basis = corners(l)
 
@@ -31,7 +31,7 @@ object VolumeMesh {
     val pointCount:Int = cubeInPlace(n) - cubeInPlace(capStride)
     val sidePointCount = pointCount - (2 * capPointCount) //points.length - (2 * capPointCount)
 
-    val points:ARRAY[Vector3] = new ARRAY[Vector3](pointCount) //(cubeInPlace(n) - cubeInPlace(n - 2))  // n³ - (n-2)³
+    val points:NArray[Vector3] = new NArray[Vector3](pointCount) //(cubeInPlace(n) - cubeInPlace(n - 2))  // n³ - (n-2)³
 
     for (p <- 0 until sidePointCount) {
       val i:Int = (p % stride) / panelStride
@@ -64,13 +64,13 @@ object VolumeMesh {
 
   def cube(l:Double = 1.0, n:Int = 64):VolumeMesh = {
 
-    val points: ARRAY[Vector3] = cubePoints(l, n)
+    val points: NArray[Vector3] = cubePoints(l, n)
 
     val panelStride:Int = n - 1
 
     val stride:Int = 4 * panelStride
 
-    val triangles: ARRAY[IndexTriangle] = new ARRAY[IndexTriangle]( 12 * squareInPlace(n - 1) ) // 12(n-1)²
+    val triangles: NArray[IndexTriangle] = new NArray[IndexTriangle]( 12 * squareInPlace(n - 1) ) // 12(n-1)²
 
     var t:Int = 0
 
@@ -195,7 +195,7 @@ object VolumeMesh {
     val Δθ: Double = (2 * π) / segments
     val cuts:Int = capSegments + sideSegments
 
-    val points: ARRAY[Vector3] = new ARRAY[Vector3](2 + ((cuts + 1) * segments))
+    val points: NArray[Vector3] = new NArray[Vector3](2 + ((cuts + 1) * segments))
   //  println(points.length)
 
     val pEnd: Int = points.length - 1
@@ -232,7 +232,7 @@ object VolumeMesh {
 
 //    println(pcount)
 
-    val triangles: ARRAY[IndexTriangle] = new ARRAY[IndexTriangle]((2 * (cuts + 1)) * segments)
+    val triangles: NArray[IndexTriangle] = new NArray[IndexTriangle]((2 * (cuts + 1)) * segments)
 
     p = 1
     var t = 0
@@ -266,8 +266,8 @@ object VolumeMesh {
     VolumeMesh(points, triangles)
   }
 
-  def apply(points:ARRAY[Vector3], triangleSet:mutable.HashSet[IndexTriangle]):VolumeMesh = {
-    val triangles:ARRAY[IndexTriangle] = new ARRAY[IndexTriangle](triangleSet.size)
+  def apply(points:NArray[Vector3], triangleSet:mutable.HashSet[IndexTriangle]):VolumeMesh = {
+    val triangles:NArray[IndexTriangle] = new NArray[IndexTriangle](triangleSet.size)
     var i:Int = 0
     for (t <- triangleSet) {
       triangles(i) = t
@@ -277,6 +277,6 @@ object VolumeMesh {
   }
 }
 
-case class VolumeMesh(vertices: ARRAY[Vector3], triangles: ARRAY[IndexTriangle]) {
+case class VolumeMesh(vertices: NArray[Vector3], triangles: NArray[IndexTriangle]) {
   def transform(f: Vector3 => Vector3):VolumeMesh = VolumeMesh( vertices.map(f), triangles)
 }

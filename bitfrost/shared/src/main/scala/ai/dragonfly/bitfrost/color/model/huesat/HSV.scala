@@ -1,6 +1,6 @@
 package ai.dragonfly.bitfrost.color.model.huesat
 
-import bridge.array.*
+import narr.*
 import ai.dragonfly.bitfrost.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
@@ -12,9 +12,9 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
 
   object HSV extends HueSaturationSpace[HSV] {
 
-    def apply(values: ARRAY[Double]): HSV = new HSV(dimensionCheck(values, 3))
+    def apply(values: NArray[Double]): HSV = new HSV(dimensionCheck(values, 3))
 
-    def clamp(values: ARRAY[Double]): HSV = {
+    def clamp(values: NArray[Double]): HSV = {
       dimensionCheck(values, 3)
       clamp(values(0), values(1), values(2))
     }
@@ -37,11 +37,11 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
      * }}}
      */
 
-    def apply(hue: Double, saturation: Double, value: Double): HSV = new HSV(ARRAY[Double](hue, saturation, value))
+    def apply(hue: Double, saturation: Double, value: Double): HSV = new HSV(NArray[Double](hue, saturation, value))
 
 
     def clamp(hue: Double, saturation: Double, value: Double): HSV = new HSV(
-      ARRAY[Double](
+      NArray[Double](
         clampHue(hue),
         clamp0to1(saturation),
         clamp0to1(value)
@@ -65,8 +65,8 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
     def fromRGB(nrgb: RGB): HSV = apply(toHSV(nrgb.red, nrgb.green, nrgb.blue))
 
 
-    inline def toHSV(red: Double, green: Double, blue: Double): ARRAY[Double] = {
-      val values: ARRAY[Double] = hueMinMax(red, green, blue)
+    inline def toHSV(red: Double, green: Double, blue: Double): NArray[Double] = {
+      val values: NArray[Double] = hueMinMax(red, green, blue)
       values(1) = {  // S
         if (values(2 /*MAX*/) == 0.0) 0.0
         else (values(2 /*MAX*/) - values(1 /*min*/)) / values(2 /*MAX*/)
@@ -75,7 +75,7 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
     }
 
     override def random(r: scala.util.Random = Random.defaultRandom): HSV = apply(
-      ARRAY[Double](
+      NArray[Double](
         r.nextDouble() * 360.0,
         r.nextDouble(),
         r.nextDouble()
@@ -84,7 +84,7 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
 
   }
 
-  case class HSV private(override val values: ARRAY[Double]) extends HueSaturation[HSV] {
+  case class HSV private(override val values: NArray[Double]) extends HueSaturation[HSV] {
 
     inline def hue: Double = values(0)
 
@@ -98,7 +98,7 @@ trait HSV extends HueSaturation { self: WorkingSpace =>
       RGB.apply(HSV.hcxmToRGBvalues(hue, C, HSV.XfromHueC(hue, C), value - C))
     }
 
-    def copy(): HSV = new HSV(ARRAY[Double](hue, saturation, value))
+    def copy(): HSV = new HSV(NArray[Double](hue, saturation, value))
 
     override def similarity(that: HSV): Double = HSV.similarity(this, that)
 

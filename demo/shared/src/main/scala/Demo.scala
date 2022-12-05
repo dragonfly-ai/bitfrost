@@ -50,6 +50,7 @@ object Demo {
             (1 to 10).map(_ => {
               val qc: C = space.random().asInstanceOf[C]
               val m: C = cp.nearestMatch(qc).color
+
               tr(
                 td(backgroundColor := ARGB32.fromRGB(qc.toRGB.asInstanceOf[sRGB.RGB]).html())(raw("&nbsp;")),
                 td(backgroundColor := ARGB32.fromRGB(m.toRGB.asInstanceOf[sRGB.RGB]).html())(raw("&nbsp;")),

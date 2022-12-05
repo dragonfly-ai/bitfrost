@@ -1,7 +1,7 @@
 package ai.dragonfly.bitfrost.color.spectral
 
 import ai.dragonfly.math.vector.Vector3
-
+import narr.*
 /**
  * CIE 2006 CMF data revised for bitfrost.
  * These data consist primarily of the 5 nano meter wavelength step data.
@@ -11,7 +11,7 @@ import ai.dragonfly.math.vector.Vector3
  */
 
 object HYBRID_CIE2006_2deg_5nm_WITH_1pm_EXTREMA extends SampleSet {
-  override val samples:Array[Sample] = Array[Sample](
+  override val samples:NArray[Sample] = NArray[Sample](
     Sample(390, Vector3(0.003769647, 0.0004146161, 0.0184726)),
     Sample(395, Vector3(0.009382967, 0.001059646, 0.04609784)),
     Sample(400, Vector3(0.02214302, 0.002452194, 0.109609)),

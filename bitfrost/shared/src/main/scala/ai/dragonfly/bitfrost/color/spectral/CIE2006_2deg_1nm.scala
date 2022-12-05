@@ -1,7 +1,7 @@
 package ai.dragonfly.bitfrost.color.spectral
 
 import ai.dragonfly.math.vector.Vector3
-
+import narr.*
 /**
  * CIE 2006 CMF data
  * 1 nano meter wavelength steps
@@ -9,7 +9,7 @@ import ai.dragonfly.math.vector.Vector3
  */
 
 object CIE2006_2deg_1nm extends SampleSet {
-  override val samples:Array[Sample] = Array[Sample](
+  override val samples:NArray[Sample] = NArray[Sample](
     Sample(390, Vector3(0.003769647,0.0004146161,0.0184726)),
     Sample(391, Vector3(0.004532416,0.0005028333,0.02221101)),
     Sample(392, Vector3(0.005446553,0.0006084991,0.02669819)),
