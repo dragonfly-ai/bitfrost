@@ -4,7 +4,8 @@ import narr.*
 import ai.dragonfly.bitfrost.NormalizedValue
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.model.*
-import ai.dragonfly.bitfrost.visualization.VolumeMesh
+import ai.dragonfly.mesh.*
+import ai.dragonfly.mesh.shape.*
 import ai.dragonfly.math.{degreesToRadians, radiansToDegrees, squareInPlace}
 import ai.dragonfly.math.Constant.π
 import ai.dragonfly.math.vector.*

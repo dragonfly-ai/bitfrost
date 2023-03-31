@@ -2,7 +2,8 @@ package ai.dragonfly.bitfrost.color.model.subtractive
 
 import narr.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
-import ai.dragonfly.bitfrost.visualization.VolumeMesh
+import ai.dragonfly.mesh.*
+import ai.dragonfly.mesh.shape.*
 import ai.dragonfly.bitfrost.{ColorContext, NormalizedValue}
 import ai.dragonfly.math.Random
 import ai.dragonfly.math.vector.*

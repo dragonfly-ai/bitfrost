@@ -3,6 +3,7 @@ package ai.dragonfly.bitfrost.cie
 import narr.{NArray, *}
 import ai.dragonfly.bitfrost.color.spectral.SampleSet
 import ai.dragonfly.bitfrost.visualization.*
+
 import ai.dragonfly.math.matrix.ml.unsupervised.dimreduction.PCA
 import ai.dragonfly.math.matrix.ml.data.*
 import ai.dragonfly.math.squareInPlace
@@ -10,6 +11,8 @@ import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
 import ai.dragonfly.math.stats.probability.distributions.stream.{Gaussian, StreamingVectorStats}
 import ai.dragonfly.math.vector.*
+import ai.dragonfly.mesh.*
+import ai.dragonfly.mesh.shape.*
 
 import java.io.PrintWriter
 import scala.collection.immutable
@@ -54,23 +57,23 @@ trait Gamut { self: WorkingSpace =>
 
     def fromRGB(n: Int = 32, transform: XYZ => Vector3 = (v: XYZ) => Vector3(v.values)): Gamut = {
 
-      val m1: VolumeMesh = VolumeMesh.cube(1.0, n)
+      val m1: Mesh = Cube(1.0, n)
 
-      val m2: VolumeMesh = VolumeMesh(
-        NArray.tabulate[Vector3](m1.vertices.length)((i:Int) => {m1.vertices(i) * 255.0}),
+      val m2: Mesh = Mesh(
+        NArray.tabulate[Vector3](m1.points.length)((i:Int) => {m1.points(i) * 255.0}),
         m1.triangles
       )
 
-      val m3: VolumeMesh = VolumeMesh(
-        m1.vertices.map((vRGB:Vector3) => transform(RGB(vRGB.values).toXYZ)),
+      val m3: Mesh = Mesh(
+        m1.points.map((vRGB:Vector3) => transform(RGB(vRGB.values).toXYZ)),
         m1.triangles
       )
 
       val sg:Gaussian = Gaussian()
 
       var i:Int = 0; while (i < m1.triangles.length) {
-        val t:IndexTriangle = m1.triangles(i)
-        sg.observe( Math.sqrt( t.area(m3.vertices) / t.area(m2.vertices) ) )
+        val t:Triangle = m1.triangles(i)
+        sg.observe( Math.sqrt( t.area(m3.points) / t.area(m2.points) ) )
         i += 1
       }
 
@@ -97,12 +100,12 @@ trait Gamut { self: WorkingSpace =>
         (i:Int)=> transform(spectralSamples.volumePoints(i))
       )
 
-      val triangles:mutable.HashSet[IndexTriangle] = mutable.HashSet[IndexTriangle]()
+      val triangles:mutable.HashSet[Triangle] = mutable.HashSet[Triangle]()
 
       var t:Int = 0
       def addTriangle(pi0:Int, pi1:Int, pi2:Int): Unit = {
-        if (VolumeMesh.nonZeroArea(points(pi0), points(pi1), points(pi2))) {
-          triangles += IndexTriangle(pi2, pi1, pi0)
+        if (Triangle.nonZeroArea(points(pi0), points(pi1), points(pi2))) {
+          triangles += Triangle(pi2, pi1, pi0)
         }
         t += 1
       }
@@ -131,9 +134,8 @@ trait Gamut { self: WorkingSpace =>
       // white adjacent:
       for (i <- (points.length - 1) - spectralSamples.sampleCount until points.length - 2) addTriangle(i, i + 1, points.length - 1)
 
-      new Gamut(VolumeMesh(points, triangles))
+      new Gamut(Mesh.fromPointsAndHashSet(points, triangles, "Spectral Samples Gamut"))
     }
-
 
 //    println("defined Gamut object methods")
   }
@@ -145,23 +147,23 @@ trait Gamut { self: WorkingSpace =>
    * @param cumulative
    */
 
-  case class Gamut (volumeMesh:VolumeMesh) extends Sampleable[Vector3] {
+  case class Gamut (volumeMesh:Mesh) extends Sampleable[Vector3] {
 
     val mean: Vector3 = {
       val sv2:StreamingVectorStats[Vector3] = new StreamingVectorStats[Vector3](3)
-      volumeMesh.vertices.foreach((p:Vector3) => sv2(p))
+      volumeMesh.points.foreach((p:Vector3) => sv2(p))
       Vector3(sv2.average().values)
     }
 
-    val maxDistSquared: Double = Gamut.computeMaxDistSquared(volumeMesh.vertices, mean)
+    val maxDistSquared: Double = Gamut.computeMaxDistSquared(volumeMesh.points, mean)
 
     val tetrahedra: NArray[Tetrahedron] = NArray.tabulate[Tetrahedron](volumeMesh.triangles.length)((i:Int) => {
-      val t: IndexTriangle = volumeMesh.triangles(i)
+      val t: Triangle = volumeMesh.triangles(i)
       Tetrahedron(
         mean,
-        volumeMesh.vertices(t.v0),
-        volumeMesh.vertices(t.v1),
-        volumeMesh.vertices(t.v2)
+        volumeMesh.points(t.v1),
+        volumeMesh.points(t.v2),
+        volumeMesh.points(t.v3)
       )
     })
 

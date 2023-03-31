@@ -3,7 +3,8 @@ package ai.dragonfly.bitfrost.color.model.perceptual
 import narr.*
 import ai.dragonfly.bitfrost.cie.WorkingSpace
 import ai.dragonfly.bitfrost.color.spectral.DEFAULT
-import ai.dragonfly.bitfrost.visualization.VolumeMesh
+import ai.dragonfly.mesh.*
+import ai.dragonfly.mesh.shape.*
 import ai.dragonfly.math.vector.*
 import ai.dragonfly.math.matrix.util.given_Dimensioned_Matrix
 import ai.dragonfly.math.matrix.util.asColumnMatrix

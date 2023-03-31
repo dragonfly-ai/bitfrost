@@ -8,15 +8,17 @@ lazy val bitfrost = crossProject(JSPlatform, JVMPlatform, NativePlatform)
   .crossType(CrossType.Full)
   .settings(
     name := "bitfrost",
-    version := "0.0.02",
+    version := "0.0.03",
     Compile / mainClass := Some("ai.dragonfly.bitfrost.verification.ConversionFidelity"),
     libraryDependencies ++= Seq(
-      "ai.dragonfly.code" %%% "matrix" % "0.41.5401",
+      "ai.dragonfly.code" %%% "mesh" % "0.03.41.5401",
       "ai.dragonfly.code" %%% "spatial" % "0.4.5401",
       "ai.dragonfly.code" %%% "cliviz" % "0.02.5401"
     )
   )
-  .jsSettings()
+  .jsSettings(
+    scalaJSUseMainModuleInitializer := true
+  )
   .jvmSettings()
 
 lazy val demo = crossProject(JSPlatform, JVMPlatform, NativePlatform)
@@ -26,6 +28,8 @@ lazy val demo = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     name := "demo",
     Compile / mainClass := Some("Demo"),
     libraryDependencies += "com.lihaoyi" %%% "scalatags" % "0.12.0",
-  ).jsSettings(
+  )
+  .jsSettings(
     scalaJSUseMainModuleInitializer := true
-  ).jvmSettings()
+  )
+  .jvmSettings()

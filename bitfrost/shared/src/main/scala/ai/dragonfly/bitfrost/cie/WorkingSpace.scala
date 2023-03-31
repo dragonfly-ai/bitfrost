@@ -13,10 +13,11 @@ import ai.dragonfly.bitfrost.color.model.perceptual.XYZ
 import ai.dragonfly.bitfrost.color.model.rgb.discrete.{ARGB32, RGBA32}
 import ai.dragonfly.bitfrost.color.model.rgb.RGB
 import ai.dragonfly.bitfrost.color.spectral.*
-import ai.dragonfly.bitfrost.visualization.VolumeMesh
 import ai.dragonfly.math.stats.geometry.Tetrahedron
 import ai.dragonfly.math.stats.probability.distributions.Sampleable
 import ai.dragonfly.math.stats.probability.distributions.stream.StreamingVectorStats
+import ai.dragonfly.mesh.*
+import ai.dragonfly.mesh.shape.*
 
 import java.io.PrintWriter
 import scala.collection.{immutable, mutable}

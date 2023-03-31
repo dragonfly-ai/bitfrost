@@ -7,6 +7,8 @@ import ai.dragonfly.bitfrost.color.model.huesat.*
 import ai.dragonfly.bitfrost.color.model.subtractive.*
 import ai.dragonfly.bitfrost.color.model.perceptual.*
 import ai.dragonfly.math.vector.Vector3
+import ai.dragonfly.mesh.*
+import ai.dragonfly.mesh.shape.*
 
 import java.io.File
 import java.io.OutputStream
@@ -46,17 +48,17 @@ class GamutMeshGenerator(val ws:WorkingSpace) {
   def usableGamut(space:WorkingSpace#Space[_]):ColorGamutVolumeMesh = ColorGamutVolumeMesh(
     space match {
       case perceptualSpace: ws.PerceptualSpace[_] => perceptualSpace.gamut.volumeMesh
-      case _: ws.VectorSpace[_] => VolumeMesh.cube()
+      case _: ws.VectorSpace[_] => Cube()
       case _: ws.CylindricalSpace[_] =>
         try {
-          if (space == ws.asInstanceOf[HSL].HSL) VolumeMesh.cylinder(sideSegments = 64)
-          else if (space == ws.asInstanceOf[HSV].HSV) VolumeMesh.cylinder(capSegments = 6)
+          if (space == ws.asInstanceOf[HSL].HSL) Cylinder(sideSegments = 64)
+          else if (space == ws.asInstanceOf[HSV].HSV) Cylinder(capSegments = 6)
           else null
         } catch {
           case _ => try {
-            if (space == ws.asInstanceOf[HSV].HSV) VolumeMesh.cylinder(capSegments = 6)
+            if (space == ws.asInstanceOf[HSV].HSV) Cylinder(capSegments = 6)
             else null
-          } catch { _ => null}
+          } catch { _ => null }
         }
     },
     (v:Vector3) => XYZtoARGB32(Vector3(space.fromVector3(v).toXYZ.values))
@@ -64,4 +66,4 @@ class GamutMeshGenerator(val ws:WorkingSpace) {
 
 }
 
-case class ColorGamutVolumeMesh(mesh:VolumeMesh, vertexColorMapper:Vector3 => ColorContext.sRGB.ARGB32)
+case class ColorGamutVolumeMesh(mesh:Mesh, vertexColorMapper:Vector3 => ColorContext.sRGB.ARGB32)
